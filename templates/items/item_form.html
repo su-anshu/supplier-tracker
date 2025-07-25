@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - Item Master{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item">
+    <a href="{% url 'items:item_list' %}">Item Master</a>
+</li>
+<li class="breadcrumb-item active">{{ title }}</li>
+{% endblock %}
+
+{% block page_title %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">
+        <i class="fas fa-{% if object %}edit{% else %}plus{% endif %} text-primary"></i> 
+        {{ title }}
+    </h2>
+    <div class="btn-group" role="group">
+        <a href="{% url 'items:item_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+        {% if object %}
+        <a href="{% url 'items:item_detail' object.pk %}" class="btn btn-info">
+            <i class="fas fa-eye"></i> View Details
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            <h6><i class="fas fa-exclamation-triangle"></i> Please correct the following errors:</h6>
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+        
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            {% crispy form %}
+            
+        </form>
+        
+    </div>
+</div>
+
+<!-- Item Preview Modal (for existing items) -->
+{% if object %}
+<div class="modal fade" id="itemPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye"></i> Item Preview - {{ object.item_name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Item ID:</strong></td>
+                                <td><code>{{ object.item_id }}</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Category:</strong></td>
+                                <td>{{ object.get_category_display }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Classification:</strong></td>
+                                <td>
+                                    <span class="badge bg-{% if object.classification == 'A' %}danger{% elif object.classification == 'B' %}warning{% else %}secondary{% endif %}">
+                                        {{ object.get_classification_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if object.status == 'active' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elif object.status == 'inactive' %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Discontinued</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Unit:</strong></td>
+                                <td>{{ object.unit }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>HSN Code:</strong></td>
+                                <td>{{ object.hsn_code|default:'-' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tax Rate:</strong></td>
+                                <td>{{ object.tax_rate }}%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Standard Rate:</strong></td>
+                                <td>
+                                    {% if object.standard_rate %}
+                                        ₹{{ object.standard_rate|floatformat:2 }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if object.specification %}
+                <div class="mt-3">
+                    <strong>Specification:</strong>
+                    <p class="text-muted">{{ object.specification }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{% url 'items:item_detail' object.pk %}" class="btn btn-info">
+                    View Full Details
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Preview Button -->
+<div class="position-fixed" style="bottom: 20px; right: 20px; z-index: 1000;">
+    <button type="button" class="btn btn-info btn-lg rounded-circle" 
+            data-bs-toggle="modal" data-bs-target="#itemPreviewModal"
+            title="Quick Preview">
+        <i class="fas fa-eye"></i>
+    </button>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    
+    // Bootstrap validation
+    const form = document.querySelector('.needs-validation');
+    
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            form.classList.add('was-validated');
+        });
+    }
+    
+    // Auto-calculate standard rate hints
+    const standardRateField = document.querySelector('#id_standard_rate');
+    const taxRateField = document.querySelector('#id_tax_rate');
+    
+    if (standardRateField && taxRateField) {
+        function updateRateHint() {
+            const rate = parseFloat(standardRateField.value) || 0;
+            const tax = parseFloat(taxRateField.value) || 0;
+            
+            if (rate > 0) {
+                const withTax = rate + (rate * tax / 100);
+                const hint = document.querySelector('#rate-hint');
+                
+                if (hint) {
+                    hint.textContent = `With ${tax}% GST: ₹${withTax.toFixed(2)}`;
+                } else {
+                    const hintElement = document.createElement('small');
+                    hintElement.id = 'rate-hint';
+                    hintElement.className = 'form-text text-muted';
+                    hintElement.textContent = `With ${tax}% GST: ₹${withTax.toFixed(2)}`;
+                    standardRateField.parentNode.appendChild(hintElement);
+                }
+            }
+        }
+        
+        standardRateField.addEventListener('input', updateRateHint);
+        taxRateField.addEventListener('input', updateRateHint);
+    }
+    
+    // HSN Code validation
+    const hsnField = document.querySelector('#id_hsn_code');
+    if (hsnField) {
+        hsnField.addEventListener('input', function() {
+            const value = this.value.trim();
+            if (value && (value.length < 4 || value.length > 8 || !/^\d+$/.test(value))) {
+                this.setCustomValidity('HSN code should be 4-8 digits');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+    
+    // Auto-uppercase item name
+    const itemNameField = document.querySelector('#id_item_name');
+    if (itemNameField) {
+        itemNameField.addEventListener('blur', function() {
+            // Capitalize first letter of each word
+            this.value = this.value.replace(/\b\w/g, l => l.toUpperCase());
+        });
+    }
+})();
+</script>
+{% endblock %}

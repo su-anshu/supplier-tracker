@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+
+{% block title %}Bulk Upload Results - Mithila Foods{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item">
+    <a href="{% url 'items:item_list' %}">Item Master</a>
+</li>
+<li class="breadcrumb-item">
+    <a href="{% url 'items:bulk_upload' %}">Bulk Upload</a>
+</li>
+<li class="breadcrumb-item active">Results</li>
+{% endblock %}
+
+{% block page_title %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">
+        <i class="fas fa-chart-line text-info"></i> Upload Results
+    </h2>
+    <div class="btn-group" role="group">
+        <a href="{% url 'items:item_list' %}" class="btn btn-success">
+            <i class="fas fa-list"></i> View Items
+        </a>
+        <a href="{% url 'items:bulk_upload' %}" class="btn btn-primary">
+            <i class="fas fa-upload"></i> Upload Again
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-success">
+                    <div class="card-body text-center">
+                        <div class="text-success">
+                            <i class="fas fa-check-circle fa-3x mb-3"></i>
+                        </div>
+                        <h3 class="text-success mb-1">{{ results.success }}</h3>
+                        <p class="text-muted mb-0">Items Created</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-danger">
+                    <div class="card-body text-center">
+                        <div class="text-danger">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                        </div>
+                        <h3 class="text-danger mb-1">{{ results.errors }}</h3>
+                        <p class="text-muted mb-0">Errors/Skipped</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-info">
+                    <div class="card-body text-center">
+                        <div class="text-info">
+                            <i class="fas fa-file-excel fa-3x mb-3"></i>
+                        </div>
+                        <h3 class="text-info mb-1">{{ results.total_rows }}</h3>
+                        <p class="text-muted mb-0">Total Rows</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-warning">
+                    <div class="card-body text-center">
+                        <div class="text-warning">
+                            <i class="fas fa-percentage fa-3x mb-3"></i>
+                        </div>
+                        <h3 class="text-warning mb-1">
+                            {% if results.total_rows > 0 %}
+                                {% widthratio results.success results.total_rows 100 %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </h3>
+                        <p class="text-muted mb-0">Success Rate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Information -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle"></i> Upload Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>File Name:</strong> {{ filename }}</p>
+                        <p><strong>Processing Date:</strong> {{ "now"|date:"d M Y, H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Total Rows Processed:</strong> {{ results.total_rows }}</p>
+                        <p><strong>Status:</strong> 
+                            {% if results.errors == 0 %}
+                                <span class="badge bg-success">All Successful</span>
+                            {% elif results.success == 0 %}
+                                <span class="badge bg-danger">All Failed</span>
+                            {% else %}
+                                <span class="badge bg-warning">Partially Successful</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Items -->
+        {% if results.success_items %}
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-check-circle"></i> Successfully Created Items ({{ results.success }})
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for item in results.success_items %}
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check text-success me-2"></i>
+                            <span class="small">{{ item }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if results.success_items|length > 10 %}
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-success" type="button" data-bs-toggle="collapse" data-bs-target="#allSuccessItems">
+                        <i class="fas fa-list"></i> Show All {{ results.success }} Items
+                    </button>
+                    <div class="collapse mt-3" id="allSuccessItems">
+                        <div class="row">
+                            {% for item in results.success_items %}
+                            <div class="col-md-4 mb-1">
+                                <small class="text-success">
+                                    <i class="fas fa-check me-1"></i>{{ item }}
+                                </small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Errors and Issues -->
+        {% if results.error_details or results.skipped_items %}
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Errors and Issues ({{ results.errors }})
+                </h6>
+            </div>
+            <div class="card-body">
+                
+                <!-- Skipped Items (Duplicates) -->
+                {% if results.skipped_items %}
+                <h6 class="text-warning">
+                    <i class="fas fa-copy"></i> Skipped Items (Already Exist)
+                </h6>
+                <div class="row mb-3">
+                    {% for item in results.skipped_items %}
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-copy text-warning me-2"></i>
+                            <span class="small">{{ item }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Validation Errors -->
+                {% if results.error_details %}
+                <h6 class="text-danger">
+                    <i class="fas fa-exclamation-circle"></i> Validation Errors
+                </h6>
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        {% for error in results.error_details %}
+                        <li class="mb-1">{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Error Fix Suggestions -->
+                {% if results.error_details %}
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-lightbulb"></i> How to Fix These Errors:
+                    </h6>
+                    <ul class="mb-0">
+                        <li><strong>Invalid category:</strong> Use only: raw_material, packaging, stationery, infrastructure, others</li>
+                        <li><strong>Invalid unit:</strong> Use only: kg, grams, liters, ml, pcs, boxes, rolls, meters, feet, bags</li>
+                        <li><strong>Invalid status:</strong> Use only: active, inactive, discontinued</li>
+                        <li><strong>Duplicate items:</strong> Remove or rename items that already exist</li>
+                        <li><strong>Invalid numbers:</strong> Ensure numeric fields contain only numbers</li>
+                        <li><strong>Download the template</strong> for the exact format and valid options</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="card-title">What's Next?</h6>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'items:item_list' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-list"></i> View All Items
+                    </a>
+                    {% if results.errors > 0 %}
+                    <a href="{% url 'items:bulk_upload' %}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-upload"></i> Fix & Upload Again
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'items:download_template' %}" class="btn btn-info btn-lg">
+                        <i class="fas fa-download"></i> Download Template
+                    </a>
+                    <a href="{% url 'items:item_add' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus"></i> Add Single Item
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips for Better Results -->
+        {% if results.errors > 0 %}
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-tips"></i> Tips for Better Results
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">✅ Before Re-uploading:</h6>
+                        <ul class="small">
+                            <li>Download a fresh template</li>
+                            <li>Use the dropdown lists in Excel</li>
+                            <li>Remove duplicate item names</li>
+                            <li>Check all required columns are filled</li>
+                            <li>Verify numeric values are valid</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">🎯 Pro Tips:</h6>
+                        <ul class="small">
+                            <li>Test with 5-10 items first</li>
+                            <li>Use the Excel validation dropdowns</li>
+                            <li>Keep item names unique and descriptive</li>
+                            <li>Remove any extra spaces in data</li>
+                            <li>Save as .xlsx format for best results</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-expand success items if there are few errors
+    const errorCount = {{ results.errors }};
+    const successCount = {{ results.success }};
+    
+    if (errorCount === 0 && successCount > 0) {
+        // Show success message
+        const successAlert = document.createElement('div');
+        successAlert.className = 'alert alert-success alert-dismissible fade show';
+        successAlert.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <strong>Excellent!</strong> All ${successCount} items were uploaded successfully!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.row').insertBefore(successAlert, document.querySelector('.row').firstChild);
+    } else if (successCount > 0 && errorCount > 0) {
+        // Show partial success message
+        const warningAlert = document.createElement('div');
+        warningAlert.className = 'alert alert-warning alert-dismissible fade show';
+        warningAlert.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Partial Success:</strong> ${successCount} items uploaded, ${errorCount} had issues. Check errors below.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.row').insertBefore(warningAlert, document.querySelector('.row').firstChild);
+    } else if (errorCount > 0 && successCount === 0) {
+        // Show error message
+        const errorAlert = document.createElement('div');
+        errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+        errorAlert.innerHTML = `
+            <i class="fas fa-times-circle"></i>
+            <strong>Upload Failed:</strong> No items could be processed. Please fix the errors and try again.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.row').insertBefore(errorAlert, document.querySelector('.row').firstChild);
+    }
+});
+</script>
+{% endblock %}

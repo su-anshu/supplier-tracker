@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Server Error - 500{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="error-page">
+                <div class="error-code mb-4">
+                    <h1 class="display-1 text-danger">500</h1>
+                </div>
+                <div class="error-message">
+                    <h2 class="h3 mb-3">Internal Server Error</h2>
+                    <p class="lead text-muted mb-4">
+                        Something went wrong on our end. Please try again later.
+                    </p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'items:item_list' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-home"></i> Go Home
+                        </a>
+                        <button onclick="location.reload()" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-refresh"></i> Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

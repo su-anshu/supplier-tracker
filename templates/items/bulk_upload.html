@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Bulk Upload Items - Mithila Foods{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item">
+    <a href="{% url 'items:item_list' %}">Item Master</a>
+</li>
+<li class="breadcrumb-item active">Bulk Upload</li>
+{% endblock %}
+
+{% block page_title %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">
+        <i class="fas fa-file-excel text-success"></i> Bulk Upload Items
+    </h2>
+    <div class="btn-group" role="group">
+        <a href="{% url 'items:item_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Items
+        </a>
+        <a href="{% url 'items:item_add' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Single Item
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        
+        <!-- Upload Form -->
+        {% crispy form %}
+        
+        <!-- Instructions Card -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb"></i> Step-by-Step Instructions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">📝 How to Use:</h6>
+                        <ol class="small">
+                            <li>Download the Excel template using the button above</li>
+                            <li>Fill in your item data following the format</li>
+                            <li>Save the file and upload it using the form</li>
+                            <li>Review any errors and fix them if needed</li>
+                            <li>Re-upload the corrected file</li>
+                        </ol>
+                        
+                        <h6 class="text-primary mt-3">✅ Required Columns:</h6>
+                        <ul class="small">
+                            <li><strong>item_name:</strong> Unique item name</li>
+                            <li><strong>category:</strong> raw_material, packaging, stationery, infrastructure, others</li>
+                            <li><strong>unit:</strong> kg, grams, liters, ml, pcs, boxes, rolls, meters, feet, bags</li>
+                            <li><strong>status:</strong> active, inactive, discontinued</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">🔧 Optional Columns:</h6>
+                        <ul class="small">
+                            <li><strong>hsn_code:</strong> 4-8 digit HSN/SAC code</li>
+                            <li><strong>tax_rate:</strong> GST rate (0-100)</li>
+                            <li><strong>reorder_level:</strong> Minimum stock level</li>
+                            <li><strong>standard_rate:</strong> Rate without GST</li>
+                            <li><strong>shelf_life_days:</strong> Shelf life in days</li>
+                            <li><strong>specification:</strong> Item specifications</li>
+                            <li><strong>description:</strong> Detailed description</li>
+                            <li><strong>remarks:</strong> Additional notes</li>
+                        </ul>
+                        
+                        <h6 class="text-primary mt-3">⚠️ Important Notes:</h6>
+                        <ul class="small">
+                            <li>Maximum file size: 5MB</li>
+                            <li>Supported formats: .xlsx, .xls</li>
+                            <li>Duplicate item names will be skipped</li>
+                            <li>Invalid data will be reported as errors</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sample Data Card -->
+        <div class="card mt-4">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                    <i class="fas fa-table"></i> Sample Data Format
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>item_name</th>
+                                <th>category</th>
+                                <th>unit</th>
+                                <th>status</th>
+                                <th>hsn_code</th>
+                                <th>tax_rate</th>
+                                <th>reorder_level</th>
+                                <th>standard_rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Basmati Rice Premium</td>
+                                <td>raw_material</td>
+                                <td>kg</td>
+                                <td>active</td>
+                                <td>1006</td>
+                                <td>5.0</td>
+                                <td>1000</td>
+                                <td>85.50</td>
+                            </tr>
+                            <tr>
+                                <td>Cardboard Boxes 10x10</td>
+                                <td>packaging</td>
+                                <td>pcs</td>
+                                <td>active</td>
+                                <td>4819</td>
+                                <td>18.0</td>
+                                <td>500</td>
+                                <td>12.50</td>
+                            </tr>
+                            <tr>
+                                <td>Office Paper A4</td>
+                                <td>stationery</td>
+                                <td>boxes</td>
+                                <td>active</td>
+                                <td>4802</td>
+                                <td>18.0</td>
+                                <td>50</td>
+                                <td>285.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <small class="text-muted">
+                    <strong>Note:</strong> This is just a sample. Download the template for the complete format with all optional columns.
+                </small>
+            </div>
+        </div>
+        
+        <!-- Tips Card -->
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb"></i> Pro Tips for Success
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-success">✅ Best Practices:</h6>
+                        <ul class="small">
+                            <li>Use the provided template for best results</li>
+                            <li>Test with a small batch first (5-10 items)</li>
+                            <li>Keep item names unique and descriptive</li>
+                            <li>Double-check category and unit values</li>
+                            <li>Remove any extra spaces in data</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-danger">❌ Common Mistakes:</h6>
+                        <ul class="small">
+                            <li>Using invalid category names</li>
+                            <li>Incorrect unit abbreviations</li>
+                            <li>Duplicate item names</li>
+                            <li>Missing required columns</li>
+                            <li>Non-numeric values in number fields</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File upload validation
+    const fileInput = document.querySelector('input[type="file"]');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            
+            if (file) {
+                // Check file size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size too large. Maximum size is 5MB.');
+                    this.value = '';
+                    return;
+                }
+                
+                // Check file extension
+                const fileName = file.name.toLowerCase();
+                if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
+                    alert('Please select a valid Excel file (.xlsx or .xls)');
+                    this.value = '';
+                    return;
+                }
+                
+                // Show file info
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'alert alert-info mt-2';
+                fileInfo.innerHTML = `
+                    <i class="fas fa-file-excel"></i>
+                    <strong>Selected:</strong> ${file.name} 
+                    (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                `;
+                
+                // Remove any existing file info
+                const existingInfo = this.parentNode.querySelector('.alert-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+                
+                this.parentNode.appendChild(fileInfo);
+            }
+        });
+    }
+    
+    // Form submission loading state
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

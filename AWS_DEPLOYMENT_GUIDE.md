@@ -1,5 +1,18 @@
 # AWS EC2 Deployment Guide
-## Mithila Foods Supplier Tracker System
+## #### 4. Configure environment variables
+```bash
+# Edit the .env file with your production values
+nano .env
+
+# Set these critical values (replace with your actual EC2 public IP):
+SECRET_KEY=your-production-secret-key-here
+DEBUG=False
+ALLOWED_HOSTS=3.6.126.140,your-domain.com,localhost,127.0.0.1
+
+# Quick fix for ALLOWED_HOSTS (run this script to auto-detect IPs):
+chmod +x fix_allowed_hosts.sh
+./fix_allowed_hosts.sh
+```ods Supplier Tracker System
 
 ### Prerequisites
 - AWS EC2 instance (Ubuntu 20.04 LTS or later)
@@ -91,6 +104,10 @@ COMPANY_NAME=Mithila Foods
 3. Test manually: `python manage.py runserver 0.0.0.0:8000`
 
 #### Common issues:
+- **DisallowedHost error**: Your EC2 public IP isn't in ALLOWED_HOSTS
+  - Run `./fix_allowed_hosts.sh` to auto-fix
+  - Or manually add your public IP to `.env`: `ALLOWED_HOSTS=your-public-ip,localhost`
+  - Temporary fix: `echo "AWS_DEBUG_HOSTS=True" >> .env` (allows all hosts)
 - **Port already in use**: Stop other services or change port
 - **Permission denied**: Check file permissions and ownership
 - **Database errors**: Ensure database is properly configured

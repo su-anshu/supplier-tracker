@@ -275,6 +275,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 # AWS EC2 Deployment Configuration
 import socket
 
+# Base ALLOWED_HOSTS from environment variable
+base_allowed_hosts = ALLOWED_HOSTS.copy()
+
 # Get EC2 internal IP for ALLOWED_HOSTS
 try:
     # This works on EC2 to get internal IP

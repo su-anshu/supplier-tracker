@@ -29,8 +29,15 @@ chmod +x deploy_aws.sh
 #### 4. Configure Production Settings
 - [ ] Copy `.env.example` to `.env`
 - [ ] Update `SECRET_KEY` with strong value
-- [ ] Set `DEBUG=False`
-- [ ] Update `ALLOWED_HOSTS` with your domain/IP
+- [ ] Set `DEBUG=False` for production
+- [ ] Update `ALLOWED_HOSTS` with your EC2 public IP
+- [ ] **Quick fix**: Run `./fix_allowed_hosts.sh` to auto-configure IPs
+
+```bash
+# Quick ALLOWED_HOSTS fix
+chmod +x fix_allowed_hosts.sh
+./fix_allowed_hosts.sh
+```
 
 #### 5. Final Steps
 - [ ] Create admin user: `python manage.py createsuperuser`

@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mithila Foods{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-0">
+                                <i class="fas fa-file-invoice"></i> Purchase Order Management
+                            </h2>
+                            <p class="mb-0">Complete purchase order management with approval workflow</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{% url 'purchase_orders:po_add' %}" class="btn btn-light btn-lg">
+                                    <i class="fas fa-plus"></i> Create New PO
+                                </a>
+                                <a href="{% url 'purchase_orders:dashboard' %}" class="btn btn-outline-light">
+                                    <i class="fas fa-chart-bar"></i> Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-invoice fa-2x text-primary mb-2"></i>
+                    <h4 class="text-primary">{{ total_pos }}</h4>
+                    <p class="mb-0">Total POs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-secondary">
+                <div class="card-body text-center">
+                    <i class="fas fa-edit fa-2x text-secondary mb-2"></i>
+                    <h4 class="text-secondary">{{ draft_pos }}</h4>
+                    <p class="mb-0">Draft</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                    <h4 class="text-warning">{{ pending_pos }}</h4>
+                    <p class="mb-0">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4 class="text-success">{{ approved_pos }}</h4>
+                    <p class="mb-0">Approved</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                    <h4 class="text-danger">{{ overdue_pos }}</h4>
+                    <p class="mb-0">Overdue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-rupee-sign fa-2x text-info mb-2"></i>
+                    <h4 class="text-info">₹{{ total_value|floatformat:0 }}</h4>
+                    <p class="mb-0">Total Value</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    {% if search_form %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-search"></i> Search & Filter Purchase Orders</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.status }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.priority }}
+                </div>
+                <div class="col-md-3">
+                    {{ search_form.supplier }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Date Range Filter -->
+            <form method="get" class="row g-3 mt-2">
+                <div class="col-md-3">
+                    <label class="form-label">From Date:</label>
+                    {{ search_form.date_from }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">To Date:</label>
+                    {{ search_form.date_to }}
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-calendar"></i> Apply Dates
+                    </button>
+                    <a href="{% url 'purchase_orders:po_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Purchase Orders Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Purchase Orders
+                {% if purchase_orders %}
+                    <span class="badge bg-primary ms-2">{{ purchase_orders|length }}</span>
+                {% endif %}
+            </h5>
+        </div>
+        
+        <div class="card-body p-0">
+            {% if purchase_orders %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>PO Number</th>
+                            <th>Supplier</th>
+                            <th>PO Date</th>
+                            <th>Expected Delivery</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Total Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for po in purchase_orders %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'purchase_orders:po_detail' po.pk %}" class="text-decoration-none">
+                                    <strong>{{ po.po_number }}</strong>
+                                </a>
+                            </td>
+                            <td>{{ po.supplier.supplier_name }}</td>
+                            <td>{{ po.po_date|date:"M d, Y" }}</td>
+                            <td>{{ po.expected_delivery_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge bg-{{ po.status_color }}">
+                                    {{ po.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ po.priority_color }}">
+                                    {{ po.get_priority_display }}
+                                </span>
+                            </td>
+                            <td>₹{{ po.total_amount|floatformat:2 }}</td>
+                            <td>
+                                <a href="{% url 'purchase_orders:po_detail' po.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <i class="fas fa-file-invoice fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No Purchase Orders Found</h4>
+                <p class="text-muted">Get started by creating your first purchase order.</p>
+                <a href="{% url 'purchase_orders:po_add' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus"></i> Create Purchase Order
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Purchase Order List JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Purchase Order Management System loaded');
+});
+</script>
+{% endblock %}

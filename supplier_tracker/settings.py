@@ -18,7 +18,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-your-secret-key-here-change-in-production')
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-your-super-secret-key-here-change-me-in-production-12345-aws-deployment-ready')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
@@ -42,7 +42,11 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'locations',
     'items',
+    'suppliers',
+    'transporters',
+    'purchase_orders',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -81,7 +85,7 @@ WSGI_APPLICATION = 'supplier_tracker.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# Development database (SQLite)
+# Using SQLite for both development and production
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -89,18 +93,18 @@ DATABASES = {
     }
 }
 
-# Production database (PostgreSQL on Render)
-if not DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME'),
-            'USER': config('DB_USER'),
-            'PASSWORD': config('DB_PASSWORD'),
-            'HOST': config('DB_HOST'),
-            'PORT': config('DB_PORT', default='5432'),
-        }
-    }
+# Optional: PostgreSQL configuration (uncomment if you upgrade to PostgreSQL later)
+# if not DEBUG:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.postgresql',
+#             'NAME': config('DB_NAME'),
+#             'USER': config('DB_USER'),
+#             'PASSWORD': config('DB_PASSWORD'),
+#             'HOST': config('DB_HOST'),
+#             'PORT': config('DB_PORT', default='5432'),
+#         }
+#     }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -223,8 +227,14 @@ LOGGING = {
 }
 
 # Create logs directory if it doesn't exist
-logs_dir = BASE_DIR / 'logs'
-logs_dir.mkdir(exist_ok=True)
+try:
+    logs_dir = BASE_DIR / 'logs'
+    logs_dir.mkdir(exist_ok=True)
+except PermissionError:
+    # Use system temp directory if can't create logs
+    import tempfile
+    logs_dir = Path(tempfile.gettempdir()) / 'django_logs'
+    logs_dir.mkdir(exist_ok=True)
 
 # Pagination Settings
 ITEMS_PER_PAGE = 20
@@ -259,3 +269,42 @@ ITEMS_DEFAULT_TAX_RATE = 18.00
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+
+# AWS EC2 Deployment Configuration
+import socket
+
+# Get EC2 internal IP for ALLOWED_HOSTS
+try:
+    # This works on EC2 to get internal IP
+    hostname = socket.getfqdn()
+    internal_ip = socket.gethostbyname(hostname)
+    if internal_ip not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.extend([internal_ip, hostname])
+except:
+    pass
+
+# Add common EC2 patterns to ALLOWED_HOSTS
+ec2_hosts = [
+    '*.amazonaws.com',
+    '*.compute-1.amazonaws.com',
+    '*.compute.amazonaws.com',
+    '*.ec2.internal',
+]
+
+for host in ec2_hosts:
+    if host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
+
+# For deployment debugging - remove after successful deployment
+if config('AWS_DEBUG_HOSTS', default=False, cast=bool):
+    ALLOWED_HOSTS = ['*']
+
+# Ensure static files work properly
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# SQLite optimizations for production
+DATABASES['default'].update({
+    'OPTIONS': {
+        'timeout': 20,
+    },
+})

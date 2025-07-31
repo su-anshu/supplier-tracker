@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ supplier.supplier_name }} - Mithila Foods{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirm Deletion
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-warning"></i> Warning!</h5>
+                        <p>You are about to permanently delete the following supplier. This action cannot be undone.</p>
+                    </div>
+
+                    <!-- Supplier Information -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Supplier Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Supplier ID:</strong> {{ supplier.supplier_id }}</p>
+                                    <p><strong>Name:</strong> {{ supplier.supplier_name }}</p>
+                                    <p><strong>Contact Person:</strong> {{ supplier.contact_person }}</p>
+                                    <p><strong>Phone:</strong> {{ supplier.phone_number }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Category:</strong> {{ supplier.get_category_display }}</p>
+                                    <p><strong>Status:</strong> {{ supplier.get_status_display }}</p>
+                                    <p><strong>Email:</strong> {{ supplier.email|default:"Not provided" }}</p>
+                                    <p><strong>Credit Limit:</strong> 
+                                        {% if supplier.credit_limit %}₹{{ supplier.credit_limit }}{% else %}Not set{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Features Impact -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Enhanced Features to be deleted:</h6>
+                        <ul class="mb-0">
+                            {% if supplier.email %}
+                                <li>Email address: {{ supplier.email }}</li>
+                            {% endif %}
+                            {% if supplier.credit_limit %}
+                                <li>Credit limit: ₹{{ supplier.credit_limit }}</li>
+                            {% endif %}
+                            {% if supplier.has_bank_details %}
+                                <li>Bank details and account information</li>
+                            {% endif %}
+                            {% if supplier.has_upi_scanner %}
+                                <li>UPI scanner image</li>
+                            {% endif %}
+                            <li>All supplier data and history</li>
+                        </ul>
+                    </div>
+
+                    <!-- Confirmation Form -->
+                    <form method="post" class="text-center">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <button type="submit" class="btn btn-danger btn-lg me-md-2">
+                                <i class="fas fa-trash"></i> Yes, Delete Supplier
+                            </button>
+                            <a href="{% url 'suppliers:supplier_detail' supplier.pk %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Actions -->
+            <div class="text-center mt-4">
+                <a href="{% url 'suppliers:supplier_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Back to Supplier List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

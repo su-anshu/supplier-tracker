@@ -319,3 +319,83 @@ class BulkUploadForm(forms.Form):
                 )
         
         return excel_file
+
+
+# Transfer Widget Forms
+class ItemTransferForm(forms.Form):
+    """Form for transferring items between locations or processes"""
+    item = forms.ModelChoiceField(
+        queryset=Item.objects.filter(status='active'),
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+            'id': 'transfer-item-select'
+        }),
+        help_text="Select the item to transfer"
+    )
+    quantity = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=0.01,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter quantity'
+        }),
+        help_text="Quantity to transfer"
+    )
+    from_location = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'From Location'
+        }),
+        help_text="Source location"
+    )
+    to_location = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'To Location'
+        }),
+        help_text="Destination location"
+    )
+    transfer_reason = forms.CharField(
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Reason for transfer (optional)'
+        }),
+        help_text="Optional reason for the transfer"
+    )
+    remarks = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Additional remarks (optional)'
+        }),
+        required=False,
+        help_text="Any additional notes"
+    )
+
+class BulkItemSelectForm(forms.Form):
+    """Form for bulk item selection"""
+    selected_items = forms.ModelMultipleChoiceField(
+        queryset=Item.objects.filter(status='active'),
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input'
+        }),
+        required=True,
+        help_text="Select items for bulk operations"
+    )
+    action = forms.ChoiceField(
+        choices=[
+            ('transfer', 'Transfer Items'),
+            ('activate', 'Activate Items'),
+            ('deactivate', 'Deactivate Items'),
+            ('export', 'Export Selected Items')
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        }),
+        help_text="Choose action to perform on selected items"
+    )

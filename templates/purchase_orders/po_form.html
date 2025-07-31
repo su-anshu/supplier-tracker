@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mithila Foods{% endblock %}
+
+{% block extra_css %}
+<style>
+.item-row {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
+
+.calculation-display {
+    background-color: #e9ecef;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    margin-top: 1rem;
+}
+
+.sticky-total {
+    position: sticky;
+    bottom: 20px;
+    z-index: 100;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <h2 class="mb-0">
+                        <i class="fas fa-file-invoice"></i> {{ title }}
+                    </h2>
+                    <p class="mb-0">Create comprehensive purchase orders with multiple items</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    <form method="post" id="po-form">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- Left Column - PO Details -->
+            <div class="col-lg-8">
+                <!-- Purchase Order Information -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-invoice"></i> Purchase Order Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.supplier.id_for_label }}" class="form-label">Supplier *</label>
+                                {{ form.supplier }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.transporter.id_for_label }}" class="form-label">Transporter</label>
+                                {{ form.transporter }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.po_date.id_for_label }}" class="form-label">PO Date *</label>
+                                {{ form.po_date }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.expected_delivery_date.id_for_label }}" class="form-label">Expected Delivery *</label>
+                                {{ form.expected_delivery_date }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.priority.id_for_label }}" class="form-label">Priority</label>
+                                {{ form.priority }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.payment_terms.id_for_label }}" class="form-label">Payment Terms</label>
+                                {{ form.payment_terms }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.reference_number.id_for_label }}" class="form-label">Reference Number</label>
+                                {{ form.reference_number }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.delivery_address.id_for_label }}" class="form-label">Delivery Address *</label>
+                            {{ form.delivery_address }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.delivery_contact_person.id_for_label }}" class="form-label">Contact Person *</label>
+                                {{ form.delivery_contact_person }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.delivery_phone.id_for_label }}" class="form-label">Contact Phone *</label>
+                                {{ form.delivery_phone }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Section -->
+                <div class="card mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shopping-cart"></i> Order Items
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> At least one item is required. You can add multiple items to a single purchase order.
+                        </div>
+                        
+                        <!-- Simple item addition -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Select Item</label>
+                                <select class="form-select" id="temp-item-select">
+                                    <option value="">Choose an item...</option>
+                                    {% for item in items %}
+                                    <option value="{{ item.id }}" data-rate="{{ item.standard_rate }}" data-tax="{{ item.tax_rate }}" data-unit="{{ item.unit }}">
+                                        {{ item.item_name }} ({{ item.item_id }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="temp-quantity" step="0.01" min="0.01">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Rate</label>
+                                <input type="number" class="form-control" id="temp-rate" step="0.01" min="0.01">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Tax %</label>
+                                <input type="number" class="form-control" id="temp-tax" step="0.01" min="0" max="100" value="18">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-primary w-100" onclick="addItem()">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Items List -->
+                        <div id="items-list">
+                            <div class="alert alert-secondary">
+                                No items added yet. Add items using the form above.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Summary & Actions -->
+            <div class="col-lg-4">
+                <!-- Order Summary -->
+                <div class="card sticky-total">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calculator"></i> Order Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="order-summary">
+                            <div class="row mb-2">
+                                <div class="col-6">Subtotal:</div>
+                                <div class="col-6 text-end">
+                                    <strong id="summary-subtotal">₹0.00</strong>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6">Tax Amount:</div>
+                                <div class="col-6 text-end">
+                                    <strong id="summary-tax">₹0.00</strong>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6">Discount:</div>
+                                <div class="col-6 text-end">
+                                    <div class="input-group input-group-sm">
+                                        {{ form.discount_percentage }}
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-6"><strong>Total Amount:</strong></div>
+                                <div class="col-6 text-end">
+                                    <h4 class="text-success mb-0" id="summary-total">₹0.00</h4>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Quick Actions -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="action" value="save_draft" 
+                                    class="btn btn-secondary">
+                                <i class="fas fa-save"></i> Save as Draft
+                            </button>
+                            <button type="submit" name="action" value="save_and_approve" 
+                                    class="btn btn-success">
+                                <i class="fas fa-check"></i> Create Purchase Order
+                            </button>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Navigation -->
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'purchase_orders:po_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Fields -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Additional Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                                {{ form.notes }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.terms_and_conditions.id_for_label }}" class="form-label">Terms & Conditions</label>
+                                {{ form.terms_and_conditions }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Hidden fields for items data -->
+<div id="hidden-items-fields"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let itemsList = [];
+let itemCounter = 0;
+
+// Add item to the list
+function addItem() {
+    const itemSelect = document.getElementById('temp-item-select');
+    const quantity = document.getElementById('temp-quantity').value;
+    const rate = document.getElementById('temp-rate').value;
+    const tax = document.getElementById('temp-tax').value;
+    
+    if (!itemSelect.value || !quantity || !rate) {
+        alert('Please fill in all required fields (Item, Quantity, Rate)');
+        return;
+    }
+    
+    const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+    const item = {
+        id: itemCounter++,
+        item_id: itemSelect.value,
+        item_name: selectedOption.text,
+        quantity: parseFloat(quantity),
+        rate: parseFloat(rate),
+        tax_rate: parseFloat(tax) || 0,
+        unit: selectedOption.dataset.unit || 'pcs'
+    };
+    
+    // Calculate totals
+    item.line_total = item.quantity * item.rate;
+    item.tax_amount = (item.line_total * item.tax_rate) / 100;
+    item.total_with_tax = item.line_total + item.tax_amount;
+    
+    itemsList.push(item);
+    renderItemsList();
+    calculateOrderTotal();
+    updateHiddenFields();
+    
+    // Clear form
+    itemSelect.value = '';
+    document.getElementById('temp-quantity').value = '';
+    document.getElementById('temp-rate').value = '';
+    document.getElementById('temp-tax').value = '18';
+}
+
+// Remove item from list
+function removeItem(itemId) {
+    itemsList = itemsList.filter(item => item.id !== itemId);
+    renderItemsList();
+    calculateOrderTotal();
+    updateHiddenFields();
+}
+
+// Update hidden form fields for Django formset
+function updateHiddenFields() {
+    const container = document.getElementById('hidden-items-fields');
+    container.innerHTML = '';
+    
+    console.log('Updating hidden fields, items count:', itemsList.length);
+    
+    // Add management form fields
+    container.innerHTML += `<input type="hidden" name="items-TOTAL_FORMS" value="${itemsList.length}">`;
+    container.innerHTML += `<input type="hidden" name="items-INITIAL_FORMS" value="0">`;
+    container.innerHTML += `<input type="hidden" name="items-MIN_NUM_FORMS" value="1">`;
+    container.innerHTML += `<input type="hidden" name="items-MAX_NUM_FORMS" value="1000">`;
+    
+    // Add item fields
+    itemsList.forEach((item, index) => {
+        console.log(`Adding item ${index}:`, item);
+        container.innerHTML += `
+            <input type="hidden" name="items-${index}-item" value="${item.item_id}">
+            <input type="hidden" name="items-${index}-quantity" value="${item.quantity}">
+            <input type="hidden" name="items-${index}-unit_rate" value="${item.rate}">
+            <input type="hidden" name="items-${index}-tax_rate" value="${item.tax_rate}">
+            <input type="hidden" name="items-${index}-DELETE" value="">
+        `;
+    });
+    
+    console.log('Hidden fields HTML:', container.innerHTML);
+}
+
+// Render items list
+function renderItemsList() {
+    const container = document.getElementById('items-list');
+    
+    if (itemsList.length === 0) {
+        container.innerHTML = '<div class="alert alert-secondary">No items added yet. Add items using the form above.</div>';
+        return;
+    }
+    
+    let html = '<div class="table-responsive"><table class="table table-bordered">';
+    html += '<thead class="table-light"><tr>';
+    html += '<th>Item</th><th>Qty</th><th>Rate</th><th>Line Total</th><th>Tax</th><th>Total</th><th>Action</th>';
+    html += '</tr></thead><tbody>';
+    
+    itemsList.forEach(item => {
+        html += `<tr>
+            <td><strong>${item.item_name}</strong><br><small class="text-muted">${item.unit}</small></td>
+            <td>${item.quantity}</td>
+            <td>₹${item.rate.toFixed(2)}</td>
+            <td>₹${item.line_total.toFixed(2)}</td>
+            <td>₹${item.tax_amount.toFixed(2)} (${item.tax_rate}%)</td>
+            <td><strong>₹${item.total_with_tax.toFixed(2)}</strong></td>
+            <td><button type="button" class="btn btn-danger btn-sm" onclick="removeItem(${item.id})">
+                <i class="fas fa-trash"></i></button></td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+
+// Calculate order total
+function calculateOrderTotal() {
+    const subtotal = itemsList.reduce((sum, item) => sum + item.line_total, 0);
+    const taxTotal = itemsList.reduce((sum, item) => sum + item.tax_amount, 0);
+    const discountPercent = parseFloat(document.getElementById('{{ form.discount_percentage.id_for_label }}').value) || 0;
+    const discountAmount = (subtotal * discountPercent) / 100;
+    const total = subtotal + taxTotal - discountAmount;
+    
+    document.getElementById('summary-subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+    document.getElementById('summary-tax').textContent = `₹${taxTotal.toFixed(2)}`;
+    document.getElementById('summary-total').textContent = `₹${total.toFixed(2)}`;
+}
+
+// Auto-fill rate when item is selected
+document.getElementById('temp-item-select').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    if (selectedOption.dataset.rate) {
+        document.getElementById('temp-rate').value = selectedOption.dataset.rate;
+    }
+    if (selectedOption.dataset.tax) {
+        document.getElementById('temp-tax').value = selectedOption.dataset.tax;
+    }
+});
+
+// Handle form submission
+document.getElementById('po-form').addEventListener('submit', function(e) {
+    if (itemsList.length === 0) {
+        e.preventDefault();
+        alert('Please add at least one item to the purchase order.');
+        return;
+    }
+    
+    // Update hidden fields before submission
+    updateHiddenFields();
+    
+    // Store items in sessionStorage to restore if form validation fails
+    sessionStorage.setItem('po_items', JSON.stringify(itemsList));
+    
+    // Show loading state
+    const submitButtons = document.querySelectorAll('button[type="submit"]');
+    submitButtons.forEach(btn => {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    });
+});
+
+// Restore items from sessionStorage if form validation failed
+document.addEventListener('DOMContentLoaded', function() {
+    const savedItems = sessionStorage.getItem('po_items');
+    if (savedItems) {
+        try {
+            const parsedItems = JSON.parse(savedItems);
+            if (parsedItems && parsedItems.length > 0) {
+                itemsList = parsedItems;
+                // Update counter to avoid ID conflicts
+                itemCounter = Math.max(...itemsList.map(item => item.id)) + 1;
+                renderItemsList();
+                calculateOrderTotal();
+                updateHiddenFields();
+            }
+        } catch (e) {
+            console.error('Error restoring items:', e);
+        }
+        
+        // Clear the stored items after successful restoration
+        sessionStorage.removeItem('po_items');
+    }
+});
+
+// Recalculate when discount changes
+document.getElementById('{{ form.discount_percentage.id_for_label }}').addEventListener('input', calculateOrderTotal);
+</script>
+{% endblock %}

@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mithila Foods{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-0">
+                                <i class="fas fa-chart-bar"></i> {{ title }}
+                            </h2>
+                            <p class="mb-0">Comprehensive analytics and insights for purchase order management</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'purchase_orders:po_add' %}" class="btn btn-light">
+                                    <i class="fas fa-plus"></i> Create PO
+                                </a>
+                                <a href="{% url 'purchase_orders:po_list' %}" class="btn btn-outline-light">
+                                    <i class="fas fa-list"></i> All POs
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-primary h-100">
+                <div class="card-body text-center">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <i class="fas fa-file-invoice fa-3x text-primary mb-2"></i>
+                            <h3 class="text-primary">{{ total_pos }}</h3>
+                            <p class="mb-0 font-weight-bold">Total Purchase Orders</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-success h-100">
+                <div class="card-body text-center">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <i class="fas fa-check-circle fa-3x text-success mb-2"></i>
+                            <h3 class="text-success">{{ completed_pos }}</h3>
+                            <p class="mb-0 font-weight-bold">Completed Orders</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-warning h-100">
+                <div class="card-body text-center">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <i class="fas fa-clock fa-3x text-warning mb-2"></i>
+                            <h3 class="text-warning">{{ pending_pos }}</h3>
+                            <p class="mb-0 font-weight-bold">Pending Approval</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-info h-100">
+                <div class="card-body text-center">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <i class="fas fa-rupee-sign fa-3x text-info mb-2"></i>
+                            <h3 class="text-info">₹{{ total_value|floatformat:0 }}</h3>
+                            <p class="mb-0 font-weight-bold">Total Value</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Statistics -->
+    <div class="row mb-4">
+        <div class="col-lg-2 col-md-4 mb-3">
+            <div class="card border-secondary">
+                <div class="card-body text-center">
+                    <h4 class="text-secondary">{{ draft_pos }}</h4>
+                    <p class="mb-0">Draft</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 mb-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h4 class="text-success">{{ approved_pos }}</h4>
+                    <p class="mb-0">Approved</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 mb-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <h4 class="text-info">₹{{ avg_po_value|floatformat:0 }}</h4>
+                    <p class="mb-0">Avg PO Value</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <h6 class="text-primary mb-1">This Month</h6>
+                    <h4 class="text-primary">{{ total_pos }}</h4>
+                    <p class="mb-0">New POs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <h6 class="text-warning mb-1">Performance</h6>
+                    <h4 class="text-warning">95%</h4>
+                    <p class="mb-0">On-Time Delivery</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Charts Column -->
+        <div class="col-lg-8">
+            <!-- Status Distribution Chart -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-pie-chart"></i> Purchase Order Status Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart" height="100"></canvas>
+                </div>
+            </div>
+
+            <!-- Monthly Trend Chart -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line"></i> Monthly Purchase Order Trends
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart" height="100"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Suppliers Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> Top Suppliers by PO Count
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="suppliersChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Recent & Alerts -->
+        <div class="col-lg-4">
+            <!-- Recent Purchase Orders -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between">
+                    <h6 class="mb-0">
+                        <i class="fas fa-clock"></i> Recent Purchase Orders
+                    </h6>
+                    <a href="{% url 'purchase_orders:po_list' %}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_pos %}
+                    <div class="list-group list-group-flush">
+                        {% for po in recent_pos %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    <a href="{% url 'purchase_orders:po_detail' po.pk %}" class="text-decoration-none">
+                                        {{ po.po_number }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">{{ po.created_at|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1">{{ po.supplier.supplier_name }}</p>
+                            <div class="d-flex justify-content-between">
+                                <span class="badge bg-{{ po.status_color }}">{{ po.get_status_display }}</span>
+                                <small class="text-muted">₹{{ po.total_amount|floatformat:0 }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted mb-0">No recent purchase orders</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Overdue Purchase Orders -->
+            {% if overdue_pos %}
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Overdue Deliveries
+                        <span class="badge bg-light text-danger ms-2">{{ overdue_pos|length }}</span>
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for po in overdue_pos %}
+                        <div class="list-group-item list-group-item-warning">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    <a href="{% url 'purchase_orders:po_detail' po.pk %}" class="text-decoration-none">
+                                        {{ po.po_number }}
+                                    </a>
+                                </h6>
+                                <small class="text-danger">
+                                    {{ po.expected_delivery_date|timesince }} overdue
+                                </small>
+                            </div>
+                            <p class="mb-1">{{ po.supplier.supplier_name }}</p>
+                            <small class="text-muted">Expected: {{ po.expected_delivery_date|date:"M d, Y" }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Top Suppliers -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-trophy"></i> Top Suppliers
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    {% if top_suppliers %}
+                    <div class="list-group list-group-flush">
+                        {% for supplier in top_suppliers %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ supplier.supplier__supplier_name }}</h6>
+                                <span class="badge bg-primary">{{ supplier.po_count }} POs</span>
+                            </div>
+                            <small class="text-muted">Total Value: ₹{{ supplier.total_value|floatformat:0 }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted mb-0">No supplier data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Dashboard Charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Status Distribution Pie Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusData = {
+        labels: [
+            {% for status, count in status_stats.items %}
+            '{{ status }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for status, count in status_stats.items %}
+                {{ count }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#6c757d', '#ffc107', '#0d6efd', '#198754', 
+                '#20c997', '#fd7e14', '#dc3545', '#6f42c1'
+            ]
+        }]
+    };
+    
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: statusData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Monthly Trend Line Chart
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    const trendData = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+            label: 'Purchase Orders',
+            data: [12, 19, 8, 15, 25, 18],
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            tension: 0.4
+        }, {
+            label: 'Total Value (₹000)',
+            data: [450, 320, 180, 290, 420, 380],
+            borderColor: '#198754',
+            backgroundColor: 'rgba(25, 135, 84, 0.1)',
+            tension: 0.4
+        }]
+    };
+    
+    new Chart(trendCtx, {
+        type: 'line',
+        data: trendData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Top Suppliers Bar Chart
+    const suppliersCtx = document.getElementById('suppliersChart').getContext('2d');
+    const suppliersData = {
+        labels: [
+            {% for supplier in top_suppliers %}
+            '{{ supplier.supplier__supplier_name|truncatechars:15 }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Purchase Orders',
+            data: [
+                {% for supplier in top_suppliers %}
+                {{ supplier.po_count }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: '#0d6efd'
+        }]
+    };
+    
+    new Chart(suppliersCtx, {
+        type: 'bar',
+        data: suppliersData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+
+// Auto-refresh dashboard data every 5 minutes
+setInterval(function() {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

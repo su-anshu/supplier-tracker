@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mithila Foods{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-success text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1">
+                                <i class="fas fa-chart-bar"></i> {{ title }}
+                            </h2>
+                            <p class="mb-0">Complete overview of transporters with all compulsory fields</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="btn-group">
+                                <a href="{% url 'transporters:transporter_add' %}" class="btn btn-light">
+                                    <i class="fas fa-plus"></i> Add Transporter
+                                </a>
+                                <a href="{% url 'transporters:transporter_list' %}" class="btn btn-outline-light">
+                                    <i class="fas fa-list"></i> View All
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-success text-center">
+                <div class="card-body">
+                    <i class="fas fa-truck fa-3x text-success mb-3"></i>
+                    <h3 class="text-success">{{ total_transporters }}</h3>
+                    <p class="mb-0">Total Transporters</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-primary text-center">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-3x text-primary mb-3"></i>
+                    <h3 class="text-primary">{{ active_transporters }}</h3>
+                    <p class="mb-0">Active Transporters</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning text-center">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                    <h3 class="text-warning">{{ pending_transporters }}</h3>
+                    <p class="mb-0">Pending Approval</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info text-center">
+                <div class="card-body">
+                    <i class="fas fa-qrcode fa-3x text-info mb-3"></i>
+                    <h3 class="text-info">{{ transporters_with_upi }}</h3>
+                    <p class="mb-0">With UPI Scanners</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Vehicle Type Breakdown -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Transporters by Vehicle Type</h5>
+                </div>
+                <div class="card-body">
+                    {% if vehicle_stats %}
+                        {% for vehicle_type, count in vehicle_stats.items %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>{{ vehicle_type }}</span>
+                                <div>
+                                    <span class="badge bg-success">{{ count }}</span>
+                                    <div class="progress" style="width: 100px; height: 8px;">
+                                        <div class="progress-bar bg-success" style="width: 50%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No vehicle type data available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Breakdown -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-star"></i> Transporters by Rating</h5>
+                </div>
+                <div class="card-body">
+                    {% if rating_stats %}
+                        {% for rating, count in rating_stats.items %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>{{ rating }}</span>
+                                <div>
+                                    <span class="badge bg-warning text-dark">{{ count }}</span>
+                                    <div class="progress" style="width: 100px; height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 50%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No rating data available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transporters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Transporters</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_transporters %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Transporter</th>
+                                        <th>Contact Person</th>
+                                        <th>Vehicle Type</th>
+                                        <th>Fleet Size</th>
+                                        <th>Status</th>
+                                        <th>Payment Features</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transporter in recent_transporters %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ transporter.transporter_name }}</strong><br>
+                                            <small class="text-muted">{{ transporter.transporter_id }}</small>
+                                        </td>
+                                        <td>{{ transporter.contact_person }}</td>
+                                        <td>
+                                            <span class="badge bg-info">{{ transporter.get_primary_vehicle_type_display }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ transporter.fleet_size }}</span>
+                                        </td>
+                                        <td>
+                                            {% if transporter.status == 'active' %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ transporter.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                {% if transporter.has_payment_details %}
+                                                    <i class="fas fa-university text-success" title="Payment details available"></i>
+                                                {% endif %}
+                                                {% if transporter.has_upi_scanner %}
+                                                    <i class="fas fa-qrcode text-warning" title="UPI scanner available"></i>
+                                                {% endif %}
+                                                {% if not transporter.has_payment_details and not transporter.has_upi_scanner %}
+                                                    <small class="text-muted">Basic</small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>{{ transporter.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'transporters:transporter_detail' transporter.pk %}" 
+                                                   class="btn btn-outline-info" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'transporters:transporter_edit' transporter.pk %}" 
+                                                   class="btn btn-outline-warning" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle"></i> No transporters found. Start by adding your first transporter.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'transporters:transporter_add' %}" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-plus fa-2x mb-2"></i><br>
+                                Add New Transporter
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'transporters:transporter_list' %}" class="btn btn-info btn-lg w-100">
+                                <i class="fas fa-list fa-2x mb-2"></i><br>
+                                View All Transporters
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <button class="btn btn-primary btn-lg w-100" onclick="showCompulsoryFields()">
+                                <i class="fas fa-clipboard-check fa-2x mb-2"></i><br>
+                                Compulsory Fields
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showCompulsoryFields() {
+    alert('Transporter Master - Compulsory Fields:\n\n✓ Transporter ID (Auto-generated)\n✓ Transporter Name\n✓ Address\n✓ Phone Number\n✓ Locations Serviceable (can be multiple)\n\nNew Features:\n✓ Per KG Rate Option\n✓ Payment Details (Bank, IFSC, UPI)');
+}
+
+// Auto-refresh dashboard every 5 minutes
+setInterval(function() {
+    location.reload();
+}, 300000);
+</script>
+
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.progress {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+.badge {
+    font-size: 0.8em;
+}
+
+.bg-gradient-success {
+    background: linear-gradient(45deg, #28a745, #20c997);
+}
+</style>
+{% endblock %}

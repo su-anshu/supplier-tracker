@@ -7,10 +7,10 @@
 <div class="container-fluid">
     <!-- Main Form Card -->
     <div class="card shadow-lg">
-        <div class="card-header" style="background: linear-gradient(45deg, #007bff, #6610f2); color: white;">
+        <div class="card-header" style="background: linear-gradient(45deg, #28a745, #20c997); color: white;">
             <div class="d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">
-                    <i class="fas fa-plus-circle"></i> {{ title }}
+                    <i class="fas fa-truck"></i> {{ title }}
                 </h4>
                 <div>
                     <span class="badge bg-light text-dark">{{ form_action|default:"Create" }}</span>
@@ -22,27 +22,27 @@
         <div class="card-body">
             <!-- Compulsory Fields Info - Permanent Display -->
             <div class="alert alert-info mb-4" style="border-left: 4px solid #17a2b8;">
-                <h6><i class="fas fa-info-circle"></i> Compulsory Fields for Item Master:</h6>
+                <h6><i class="fas fa-info-circle"></i> Compulsory Fields for Transporter Master:</h6>
                 <div class="row">
                     <div class="col-md-2">
-                        <strong>✓ Item ID:</strong> Auto-generated
+                        <strong>✓ Transporter ID:</strong> Auto-generated
                     </div>
                     <div class="col-md-2">
-                        <strong>✓ Item Name:</strong> Required
+                        <strong>✓ Name:</strong> Required
                     </div>
                     <div class="col-md-2">
-                        <strong>✓ Category:</strong> Required
+                        <strong>✓ Address:</strong> Required
                     </div>
                     <div class="col-md-3">
-                        <strong>✓ Unit:</strong> Required
+                        <strong>✓ Phone Number:</strong> Required
                     </div>
                     <div class="col-md-3">
-                        <strong>✓ Tax Rate:</strong> Required
+                        <strong>✓ Serviceable Locations:</strong> Required
                     </div>
                 </div>
                 <div class="mt-2">
                     <small class="text-muted">
-                        <strong>Note:</strong> HSN code, standard rate, and other fields are optional.
+                        <strong>Note:</strong> Fleet size, vehicle type, and rate type are now optional fields.
                     </small>
                 </div>
             </div>
@@ -54,8 +54,8 @@
 
     <!-- Back to List -->
     <div class="text-center mt-4">
-        <a href="{% url 'items:item_list' %}" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left"></i> Back to Item List
+        <a href="{% url 'transporters:transporter_list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Transporter List
         </a>
     </div>
 </div>
@@ -69,8 +69,8 @@
 
 .form-control:focus,
 .form-select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
 }
 
 .card {
@@ -114,19 +114,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Enhanced field highlighting for required fields
-    const requiredFields = ['item_name', 'category', 'unit', 'tax_rate'];
-    requiredFields.forEach(fieldName => {
-        const field = document.querySelector(`[name="${fieldName}"]`);
-        if (field) {
-            field.addEventListener('focus', function() {
-                this.closest('.form-group, .mb-3')?.classList.add('border-left-primary');
-            });
-            field.addEventListener('blur', function() {
-                this.closest('.form-group, .mb-3')?.classList.remove('border-left-primary');
-            });
-        }
-    });
+    // Help with serviceable locations field
+    const locationsField = document.querySelector('[name="serviceable_locations"]');
+    if (locationsField) {
+        locationsField.addEventListener('focus', function() {
+            this.style.borderColor = '#28a745';
+        });
+        locationsField.addEventListener('blur', function() {
+            this.style.borderColor = '';
+        });
+    }
 });
 </script>
 {% endblock %}

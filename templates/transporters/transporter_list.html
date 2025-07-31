@@ -1,0 +1,482 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mithila Foods{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-success text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-0">
+                                <i class="fas fa-truck"></i> {{ title }}
+                            </h2>
+                            <p class="mb-0">Professional transporter management with all compulsory fields</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{% url 'transporters:transporter_add' %}" class="btn btn-light btn-lg">
+                                    <i class="fas fa-plus"></i> Add New Transporter
+                                </a>
+                                <a href="{% url 'transporters:dashboard' %}" class="btn btn-outline-light">
+                                    <i class="fas fa-chart-bar"></i> Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-truck fa-2x text-success mb-2"></i>
+                    <h4 class="text-success">{{ total_transporters }}</h4>
+                    <p class="mb-0">Total Transporters</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-primary mb-2"></i>
+                    <h4 class="text-primary">{{ active_transporters }}</h4>
+                    <p class="mb-0">Active Transporters</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-map-marker-alt fa-2x text-info mb-2"></i>
+                    <h4 class="text-info">Multi</h4>
+                    <p class="mb-0">Location Service</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-id-card fa-2x text-warning mb-2"></i>
+                    <h4 class="text-warning">Auto</h4>
+                    <p class="mb-0">ID Generation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Search and Filter Section -->
+    {% if search_form %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-search"></i> Search & Filter Transporters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <!-- Primary search row -->
+                <div class="col-md-3">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.status }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.vehicle_type }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.rating }}
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'transporters:transporter_list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+                
+                <!-- Enhanced filtering row -->
+                <div class="col-12">
+                    <hr class="my-2">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Filter by City Serviced</label>
+                            {{ search_form.services_city }}
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="text-muted small">
+                                <i class="fas fa-info-circle"></i> 
+                                Enhanced filters for city services
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Transporters Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Transporter List
+                {% if transporters %}
+                    <span class="badge bg-success">{{ transporters|length }} transporters</span>
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if transporters %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 8%;">ID</th>
+                                <th style="width: 15%;">Transporter Name</th>
+                                <th style="width: 12%;">Contact Person</th>
+                                <th style="width: 8%;">Status</th>
+                                <th style="width: 10%;">Phone</th>
+                                <th style="width: 8%;">Vehicle Type</th>
+                                <th style="width: 7%;">Fleet Size</th>
+                                <th style="width: 20%;">Service Areas</th>
+                                <th style="width: 7%;">Payment</th>
+                                <th style="width: 5%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transporter in transporters %}
+                            <tr>
+                                <td>
+                                    <strong class="text-success">{{ transporter.transporter_id }}</strong>
+                                </td>
+                                <td>
+                                    <a href="{% url 'transporters:transporter_detail' transporter.pk %}" class="text-decoration-none">
+                                        <strong>{{ transporter.transporter_name }}</strong>
+                                    </a>
+                                </td>
+                                <td>{{ transporter.contact_person }}</td>
+                                <td>
+                                    {% if transporter.status == 'active' %}
+                                        <span class="badge bg-success">{{ transporter.get_status_display }}</span>
+                                    {% elif transporter.status == 'pending_approval' %}
+                                        <span class="badge bg-warning">{{ transporter.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ transporter.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ transporter.phone_number }}</td>
+                                <td>
+                                    {% if transporter.primary_vehicle_type %}
+                                        <span class="badge bg-info">{{ transporter.get_primary_vehicle_type_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">Not specified</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if transporter.fleet_size %}
+                                        <span class="badge bg-primary">{{ transporter.fleet_size }} vehicle{{ transporter.fleet_size|pluralize }}</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">Not specified</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="service-areas-clean">
+                                        {% if transporter.serviceable_cities.exists %}
+                                            <div class="cities-section mb-2">
+                                                <div class="section-header">
+                                                    <i class="fas fa-map-marker-alt text-primary me-1"></i>
+                                                    <span class="section-label">Cities</span>
+                                                    <span class="count-badge">({{ transporter.serviceable_cities.count }})</span>
+                                                </div>
+                                                <div class="badges-container">
+                                                    {% for city in transporter.serviceable_cities.all|slice:":3" %}
+                                                        <span class="service-badge city-badge">{{ city.name|truncatechars:12 }}</span>
+                                                    {% endfor %}
+                                                    {% if transporter.serviceable_cities.count > 3 %}
+                                                        <span class="service-badge more-badge">+{{ transporter.serviceable_cities.count|add:"-3" }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if transporter.preferred_by_suppliers.exists %}
+                                            <div class="suppliers-section">
+                                                <div class="section-header">
+                                                    <i class="fas fa-building text-success me-1"></i>
+                                                    <span class="section-label">Suppliers</span>
+                                                    <span class="count-badge">({{ transporter.preferred_by_suppliers.count }})</span>
+                                                </div>
+                                                <div class="badges-container">
+                                                    {% for supplier in transporter.preferred_by_suppliers.all|slice:":2" %}
+                                                        <span class="service-badge supplier-badge">{{ supplier.supplier_name|truncatechars:15 }}</span>
+                                                    {% endfor %}
+                                                    {% if transporter.preferred_by_suppliers.count > 2 %}
+                                                        <span class="service-badge more-badge">+{{ transporter.preferred_by_suppliers.count|add:"-2" }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if not transporter.serviceable_cities.exists and not transporter.preferred_by_suppliers.exists %}
+                                            <div class="empty-state">
+                                                <i class="fas fa-info-circle text-muted me-1"></i>
+                                                <span class="text-muted">Basic profile</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        {% if transporter.has_payment_details %}
+                                            <i class="fas fa-university text-success" title="Bank details available"></i>
+                                        {% endif %}
+                                        {% if transporter.has_upi_scanner %}
+                                            <i class="fas fa-qrcode text-info" title="UPI scanner available"></i>
+                                        {% endif %}
+                                        {% if not transporter.has_payment_details and not transporter.has_upi_scanner %}
+                                            <small class="text-muted">Basic</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'transporters:transporter_detail' transporter.pk %}" 
+                                           class="btn btn-outline-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'transporters:transporter_edit' transporter.pk %}" 
+                                           class="btn btn-outline-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'transporters:transporter_delete' transporter.pk %}" 
+                                           class="btn btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-truck fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Transporters Found</h4>
+                    <p class="text-muted">Start by adding your first transporter with all compulsory fields.</p>
+                    <a href="{% url 'transporters:transporter_add' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-plus"></i> Add First Transporter
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Transporter pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<style>
+.bg-gradient-success {
+    background: linear-gradient(45deg, #28a745, #20c997);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.enhanced-filters {
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-top: 0.5rem;
+}
+
+.form-label.text-muted {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+/* Clean Service Areas Design */
+.service-areas-clean {
+    max-width: 280px;
+    padding: 0.5rem;
+}
+
+.cities-section, .suppliers-section {
+    margin-bottom: 0.75rem;
+}
+
+.cities-section:last-child, .suppliers-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+}
+
+.section-label {
+    font-weight: 600;
+    color: #495057;
+    margin-right: 0.3rem;
+}
+
+.count-badge {
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.service-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.city-badge {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+}
+
+.supplier-badge {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.more-badge {
+    background-color: #f5f5f5;
+    color: #757575;
+    border: 1px solid #e0e0e0;
+    font-weight: 600;
+}
+
+.empty-state {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Responsive Design for Service Areas */
+@media (max-width: 1200px) {
+    .service-areas-clean {
+        max-width: 220px;
+    }
+    
+    .service-badge {
+        max-width: 100px;
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .service-areas-clean {
+        max-width: 180px;
+    }
+    
+    .badges-container {
+        gap: 0.2rem;
+    }
+    
+    .service-badge {
+        max-width: 80px;
+        padding: 0.2rem 0.4rem;
+    }
+}
+
+/* Hover Effects */
+.service-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.city-badge:hover {
+    background-color: #bbdefb;
+    color: #0d47a1;
+}
+
+.supplier-badge:hover {
+    background-color: #a5d6a7;
+    color: #1b5e20;
+}
+
+/* Table Row Hover Effect */
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table-hover tbody tr:hover .service-badge {
+    transform: scale(1.02);
+}
+</style>
+{% endblock %}

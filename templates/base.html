@@ -31,6 +31,25 @@
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+                    <!-- Purchase Orders Management Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="purchaseOrderDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-file-invoice"></i> Purchase Orders
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="purchaseOrderDropdown">
+                            <li><a class="dropdown-item" href="{% url 'purchase_orders:po_list' %}">
+                                <i class="fas fa-list"></i> All Purchase Orders
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'purchase_orders:po_add' %}">
+                                <i class="fas fa-plus"></i> Create New PO
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'purchase_orders:dashboard' %}">
+                                <i class="fas fa-chart-bar"></i> PO Dashboard
+                            </a></li>
+                        </ul>
+                    </li>
+                    
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" 
                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -53,15 +72,47 @@
                         </ul>
                     </li>
                     
-                    <!-- Future modules placeholder -->
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#">
-                            <i class="fas fa-users"></i> Suppliers
+                    <!-- Supplier Management Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="supplierDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-building"></i> Suppliers
                         </a>
+                        <ul class="dropdown-menu" aria-labelledby="supplierDropdown">
+                            <li><a class="dropdown-item" href="{% url 'suppliers:supplier_list' %}">
+                                <i class="fas fa-list"></i> All Suppliers
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'suppliers:supplier_add' %}">
+                                <i class="fas fa-plus"></i> Add New Supplier
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'suppliers:dashboard' %}">
+                                <i class="fas fa-chart-bar"></i> Dashboard
+                            </a></li>
+                        </ul>
                     </li>
+                    
+                    <!-- Transporter Management Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="transporterDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-truck"></i> Transporters
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="transporterDropdown">
+                            <li><a class="dropdown-item" href="{% url 'transporters:transporter_list' %}">
+                                <i class="fas fa-list"></i> All Transporters
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'transporters:transporter_add' %}">
+                                <i class="fas fa-plus"></i> Add New Transporter
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'transporters:dashboard' %}">
+                                <i class="fas fa-chart-bar"></i> Dashboard
+                            </a></li>
+                        </ul>
+                    </li>
+                    
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="#">
-                            <i class="fas fa-file-invoice"></i> Purchase Orders
+                        <a class="nav-link" href="{% url 'purchase_orders:dashboard' %}">
+                            <i class="fas fa-chart-line"></i> Reports
                         </a>
                     </li>
                 </ul>

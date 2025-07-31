@@ -1,0 +1,464 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mithila Foods{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-0">
+                                <i class="fas fa-building"></i> {{ title }}
+                            </h2>
+                            <p class="mb-0">Professional supplier management with optional features</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{% url 'suppliers:supplier_add' %}" class="btn btn-light btn-lg">
+                                    <i class="fas fa-plus"></i> Add New Supplier
+                                </a>
+                                <a href="{% url 'suppliers:dashboard' %}" class="btn btn-outline-light">
+                                    <i class="fas fa-chart-bar"></i> Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-building fa-2x text-primary mb-2"></i>
+                    <h4 class="text-primary">{{ total_suppliers }}</h4>
+                    <p class="mb-0">Total Suppliers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4 class="text-success">{{ active_suppliers }}</h4>
+                    <p class="mb-0">Active Suppliers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-tags fa-2x text-info mb-2"></i>
+                    <h4 class="text-info">{{ categories_count }}</h4>
+                    <p class="mb-0">Categories</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-secondary">
+                <div class="card-body text-center">
+                    <i class="fas fa-pause-circle fa-2x text-secondary mb-2"></i>
+                    <h4 class="text-secondary">{{ inactive_suppliers }}</h4>
+                    <p class="mb-0">Inactive Suppliers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    {% if search_form %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-search"></i> Search & Filter Suppliers</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.category }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.status }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.rating }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Suppliers Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Supplier List
+                {% if suppliers %}
+                    <span class="badge bg-primary">{{ suppliers|length }} suppliers</span>
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if suppliers %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 8%;">ID</th>
+                                <th style="width: 15%;">Supplier Name</th>
+                                <th style="width: 10%;">Contact Person</th>
+                                <th style="width: 8%;">Category</th>
+                                <th style="width: 7%;">Status</th>
+                                <th style="width: 8%;">Phone</th>
+                                <th style="width: 8%;">Email</th>
+                                <th style="width: 7%;">Credit Limit</th>
+                                <th style="width: 22%;">Supply Areas</th>
+                                <th style="width: 5%;">Features</th>
+                                <th style="width: 2%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for supplier in suppliers %}
+                            <tr>
+                                <td>
+                                    <strong class="text-primary">{{ supplier.supplier_id }}</strong>
+                                </td>
+                                <td>
+                                    <a href="{% url 'suppliers:supplier_detail' supplier.pk %}" class="text-decoration-none">
+                                        <strong>{{ supplier.supplier_name }}</strong>
+                                    </a>
+                                </td>
+                                <td>{{ supplier.contact_person }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ supplier.get_category_display }}</span>
+                                </td>
+                                <td>
+                                    {% if supplier.status == 'active' %}
+                                        <span class="badge bg-success">{{ supplier.get_status_display }}</span>
+                                    {% elif supplier.status == 'pending_approval' %}
+                                        <span class="badge bg-warning">{{ supplier.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ supplier.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ supplier.phone_number }}</td>
+                                <td>
+                                    {% if supplier.email %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-envelope"></i> {{ supplier.email|truncatechars:20 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">No Email</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if supplier.credit_limit %}
+                                        <span class="badge bg-info">
+                                            ₹{{ supplier.credit_limit|floatformat:0 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">No Limit</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="supply-areas-clean">
+                                        {% if supplier.items_supplied.exists %}
+                                            <div class="items-section mb-2">
+                                                <div class="section-header">
+                                                    <i class="fas fa-boxes text-success me-1"></i>
+                                                    <span class="section-label">Items</span>
+                                                    <span class="count-badge">({{ supplier.items_supplied.count }})</span>
+                                                </div>
+                                                <div class="badges-container">
+                                                    {% for item in supplier.items_supplied.all|slice:":3" %}
+                                                        <span class="service-badge item-badge">{{ item.item_name|truncatechars:12 }}</span>
+                                                    {% endfor %}
+                                                    {% if supplier.items_supplied.count > 3 %}
+                                                        <span class="service-badge more-badge">+{{ supplier.items_supplied.count|add:"-3" }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if supplier.preferred_transporters.exists %}
+                                            <div class="transporters-section">
+                                                <div class="section-header">
+                                                    <i class="fas fa-truck text-primary me-1"></i>
+                                                    <span class="section-label">Transporters</span>
+                                                    <span class="count-badge">({{ supplier.preferred_transporters.count }})</span>
+                                                </div>
+                                                <div class="badges-container">
+                                                    {% for transporter in supplier.preferred_transporters.all|slice:":2" %}
+                                                        <span class="service-badge transporter-badge">{{ transporter.transporter_name|truncatechars:15 }}</span>
+                                                    {% endfor %}
+                                                    {% if supplier.preferred_transporters.count > 2 %}
+                                                        <span class="service-badge more-badge">+{{ supplier.preferred_transporters.count|add:"-2" }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if not supplier.items_supplied.exists and not supplier.preferred_transporters.exists %}
+                                            <div class="empty-state">
+                                                <i class="fas fa-info-circle text-muted me-1"></i>
+                                                <span class="text-muted">Basic profile</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        {% if supplier.has_bank_details %}
+                                            <i class="fas fa-university text-success" title="Bank details available"></i>
+                                        {% endif %}
+                                        {% if supplier.has_upi_scanner %}
+                                            <i class="fas fa-qrcode text-info" title="UPI scanner available"></i>
+                                        {% endif %}
+                                        {% if not supplier.has_bank_details and not supplier.has_upi_scanner %}
+                                            <small class="text-muted">Basic</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'suppliers:supplier_detail' supplier.pk %}" 
+                                           class="btn btn-outline-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'suppliers:supplier_edit' supplier.pk %}" 
+                                           class="btn btn-outline-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'suppliers:supplier_delete' supplier.pk %}" 
+                                           class="btn btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-building fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Suppliers Found</h4>
+                    <p class="text-muted">Start by adding your first supplier with all the new enhanced features.</p>
+                    <a href="{% url 'suppliers:supplier_add' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus"></i> Add First Supplier
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Supplier pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #007bff, #6610f2);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Clean Supply Areas Design */
+.supply-areas-clean {
+    max-width: 300px;
+    padding: 0.5rem;
+}
+
+.items-section, .transporters-section {
+    margin-bottom: 0.75rem;
+}
+
+.items-section:last-child, .transporters-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+}
+
+.section-label {
+    font-weight: 600;
+    color: #495057;
+    margin-right: 0.3rem;
+}
+
+.count-badge {
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.service-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-badge {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.transporter-badge {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #90caf9;
+}
+
+.more-badge {
+    background-color: #f5f5f5;
+    color: #757575;
+    border: 1px solid #e0e0e0;
+    font-weight: 600;
+}
+
+.empty-state {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Responsive Design for Supply Areas */
+@media (max-width: 1200px) {
+    .supply-areas-clean {
+        max-width: 250px;
+    }
+    
+    .service-badge {
+        max-width: 100px;
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .supply-areas-clean {
+        max-width: 200px;
+    }
+    
+    .badges-container {
+        gap: 0.2rem;
+    }
+    
+    .service-badge {
+        max-width: 80px;
+        padding: 0.2rem 0.4rem;
+    }
+}
+
+/* Hover Effects */
+.service-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.item-badge:hover {
+    background-color: #a5d6a7;
+    color: #1b5e20;
+}
+
+.transporter-badge:hover {
+    background-color: #90caf9;
+    color: #0d47a1;
+}
+
+/* Table Row Hover Effect */
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table-hover tbody tr:hover .service-badge {
+    transform: scale(1.02);
+}
+</style>
+{% endblock %}

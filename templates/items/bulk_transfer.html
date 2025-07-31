@@ -1,0 +1,25 @@
+                input.classList.remove('is-invalid');
+            }
+        });
+        
+        if (hasInvalidQuantity) {
+            e.preventDefault();
+            alert('All quantities must be greater than 0.');
+            return false;
+        }
+        
+        // Final confirmation
+        const itemCount = quantityInputs.length;
+        const confirmMessage = `Are you sure you want to create ${itemCount} transfer records from "${fromLocation}" to "${toLocation}"?`;
+        
+        if (!confirm(confirmMessage)) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    
+    // Auto-focus on from location
+    document.getElementById('from_location').focus();
+});
+</script>
+{% endblock %}

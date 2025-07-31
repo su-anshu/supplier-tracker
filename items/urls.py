@@ -26,4 +26,10 @@ urlpatterns = [
     
     # Bulk operations
     path('bulk-update/', views.bulk_update_items, name='bulk_update'),
+    
+    # Transfer functionality
+    path('transfer/', views.item_transfer_widget, name='item_transfer_widget'),
+    path('transfers/', views.transfer_list, name='transfer_list'),
+    path('bulk-select/', views.bulk_item_select, name='bulk_select'),
+    path('bulk-transfer/', views.bulk_transfer, name='bulk_transfer'),
 ]

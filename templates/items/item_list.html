@@ -1,435 +1,407 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
 
-{% block title %}Item Master - Mithila Foods{% endblock %}
-
-{% block breadcrumb_items %}
-<li class="breadcrumb-item active">Item Master</li>
-{% endblock %}
-
-{% block page_title %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 mb-0">
-        <i class="fas fa-boxes text-primary"></i> Item Master
-    </h2>
-    <div class="btn-group" role="group">
-        <a href="{% url 'items:item_add' %}" class="btn btn-success">
-            <i class="fas fa-plus"></i> Add New Item
-        </a>
-        <a href="{% url 'items:bulk_upload' %}" class="btn btn-primary">
-            <i class="fas fa-file-excel"></i> Bulk Upload
-        </a>
-        <a href="{% url 'items:dashboard' %}" class="btn btn-info">
-            <i class="fas fa-chart-bar"></i> Dashboard
-        </a>
-    </div>
-</div>
-{% endblock %}
+{% block title %}{{ title }} - Mithila Foods{% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>{{ total_items }}</h4>
-                        <p class="mb-0">Total Items</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-boxes fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>{{ active_items }}</h4>
-                        <p class="mb-0">Active Items</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-check-circle fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>{{ categories_count }}</h4>
-                        <p class="mb-0">Categories</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-tags fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-warning text-dark">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>{{ page_obj.paginator.count }}</h4>
-                        <p class="mb-0">Search Results</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-search fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Search and Filter Form -->
-{% crispy search_form %}
-
-<!-- Category-wise Item Display -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">
-            <i class="fas fa-list"></i> Items by Category
-        </h5>
-        <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-outline-primary" id="expandAll">
-                <i class="fas fa-expand-arrows-alt"></i> Expand All
-            </button>
-            <button type="button" class="btn btn-outline-secondary" id="collapseAll">
-                <i class="fas fa-compress-arrows-alt"></i> Collapse All
-            </button>
-        </div>
-    </div>
-    <div class="card-body p-0">
-        
-        {% regroup items by category as category_list %}
-        
-        {% if category_list %}
-        <div class="accordion" id="categoryAccordion">
-            {% for category in category_list %}
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="heading{{ category.grouper }}">
-                    <button class="accordion-button collapsed" type="button" 
-                            data-bs-toggle="collapse" 
-                            data-bs-target="#collapse{{ category.grouper }}" 
-                            aria-expanded="false">
-                        <div class="d-flex justify-content-between w-100 me-3">
-                            <span>
-                                <i class="fas fa-tag text-primary me-2"></i>
-                                <strong>{{ category.grouper|title }}</strong>
-                            </span>
-                            <span class="badge bg-primary rounded-pill">
-                                {{ category.list|length }} items
-                            </span>
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-0">
+                                <i class="fas fa-boxes"></i> {{ title }}
+                            </h2>
+                            <p class="mb-0">Professional item management with comprehensive features</p>
                         </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{% url 'items:item_add' %}" class="btn btn-light btn-lg">
+                                    <i class="fas fa-plus"></i> Add New Item
+                                </a>
+                                <a href="{% url 'items:dashboard' %}" class="btn btn-outline-light">
+                                    <i class="fas fa-chart-bar"></i> Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-2x text-primary mb-2"></i>
+                    <h4 class="text-primary">{{ total_items }}</h4>
+                    <p class="mb-0">Total Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4 class="text-success">{{ active_items }}</h4>
+                    <p class="mb-0">Active Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-tags fa-2x text-warning mb-2"></i>
+                    <h4 class="text-warning">{{ categories_count }}</h4>
+                    <p class="mb-0">Categories</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-secondary">
+                <div class="card-body text-center">
+                    <i class="fas fa-pause-circle fa-2x text-secondary mb-2"></i>
+                    <h4 class="text-secondary">{{ inactive_items }}</h4>
+                    <p class="mb-0">Inactive Items</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    {% if search_form %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-search"></i> Search & Filter Items</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-3">
+                    {{ search_form.category }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.status }}
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i>
                     </button>
-                </h2>
-                <div id="collapse{{ category.grouper }}" 
-                     class="accordion-collapse collapse" 
-                     data-bs-parent="#categoryAccordion">
-                    <div class="accordion-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th width="5%">
-                                            <input type="checkbox" class="form-check-input category-checkbox" 
-                                                   data-category="{{ category.grouper }}">
-                                        </th>
-                                        <th>Item ID</th>
-                                        <th>Item Name</th>
-                                        <th>Unit</th>
-                                        <th>Status</th>
-                                        <th>Standard Rate</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for item in category.list %}
-                                    <tr>
-                                        <td>
-                                            <input type="checkbox" class="form-check-input item-checkbox" 
-                                                   value="{{ item.id }}" data-category="{{ category.grouper }}">
-                                        </td>
-                                        <td>
-                                            <code>{{ item.item_id }}</code>
-                                        </td>
-                                        <td>
-                                            <strong>{{ item.item_name }}</strong>
-                                            {% if item.hsn_code %}
-                                            <br><small class="text-muted">HSN: {{ item.hsn_code }}</small>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ item.unit }}</td>
-                                        <td>
-                                            {% if item.status == 'active' %}
-                                                <span class="badge bg-success">Active</span>
-                                            {% elif item.status == 'inactive' %}
-                                                <span class="badge bg-secondary">Inactive</span>
-                                            {% else %}
-                                                <span class="badge bg-danger">Discontinued</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if item.standard_rate %}
-                                                ₹{{ item.standard_rate|floatformat:2 }}
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <a href="{% url 'items:item_detail' item.pk %}" 
-                                                   class="btn btn-outline-info btn-sm" 
-                                                   title="View Details">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{% url 'items:item_edit' item.pk %}" 
-                                                   class="btn btn-outline-warning btn-sm" 
-                                                   title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <a href="{% url 'items:item_delete' item.pk %}" 
-                                                   class="btn btn-outline-danger btn-sm" 
-                                                   title="Delete"
-                                                   onclick="return confirm('Are you sure you want to delete this item?')">
-                                                    <i class="fas fa-trash"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
-            </div>
-            {% endfor %}
+            </form>
         </div>
-        
-        {% else %}
-        <div class="text-center py-5">
-            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-            <h4 class="text-muted">No items found</h4>
-            <p class="text-muted">Try adjusting your search criteria or 
-               <a href="{% url 'items:item_add' %}">add a new item</a>.
-            </p>
-        </div>
-        {% endif %}
-        
     </div>
-</div>
+    {% endif %}
 
-<!-- Bulk Actions Panel -->
-<div class="card mt-3" id="bulkActionsPanel" style="display: none;">
-    <div class="card-header bg-warning">
-        <h6 class="mb-0">
-            <i class="fas fa-tasks"></i> Bulk Actions
-            <span id="selectedCount" class="badge bg-dark ms-2">0 selected</span>
-        </h6>
-    </div>
-    <div class="card-body">
-        <form method="post" action="{% url 'items:bulk_update' %}" id="bulkActionForm">
-            {% csrf_token %}
-            <div id="selectedItems"></div>
-            <div class="d-flex gap-2">
-                <button type="submit" name="action" value="activate" class="btn btn-success btn-sm">
-                    <i class="fas fa-check"></i> Activate Selected
-                </button>
-                <button type="submit" name="action" value="deactivate" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-pause"></i> Deactivate Selected
-                </button>
-                <button type="submit" name="action" value="discontinue" class="btn btn-danger btn-sm">
-                    <i class="fas fa-stop"></i> Discontinue Selected
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearSelection">
-                    <i class="fas fa-times"></i> Clear Selection
+    <!-- Items Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Item List
+                {% if items %}
+                    <span class="badge bg-primary">{{ items|length }} items</span>
+                {% endif %}
+            </h5>
+            <div class="btn-group btn-group-sm">
+                <a href="{% url 'items:bulk_upload' %}" class="btn btn-outline-success">
+                    <i class="fas fa-file-excel"></i> Bulk Upload
+                </a>
+                <button class="btn btn-outline-secondary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print
                 </button>
             </div>
-        </form>
+        </div>
+        <div class="card-body">
+            {% if items %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 8%;">Item ID</th>
+                                <th style="width: 18%;">Item Name</th>
+                                <th style="width: 8%;">Category</th>
+                                <th style="width: 20%;">Suppliers</th>
+                                <th style="width: 6%;">Unit</th>
+                                <th style="width: 8%;">HSN Code</th>
+                                <th style="width: 8%;">Standard Rate</th>
+                                <th style="width: 6%;">Tax Rate</th>
+                                <th style="width: 6%;">Status</th>
+                                <th style="width: 12%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>
+                                    <strong class="text-primary">{{ item.item_id }}</strong>
+                                </td>
+                                <td>
+                                    <a href="{% url 'items:item_detail' item.pk %}" class="text-decoration-none">
+                                        <strong>{{ item.item_name }}</strong>
+                                    </a>
+                                    {% if item.brand %}
+                                        <br><small class="text-muted">{{ item.brand }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.category %}
+                                        <span class="badge bg-info">{{ item.get_category_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">No Category</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="suppliers-column">
+                                        {% if item.suppliers.exists %}
+                                            <div class="suppliers-container">
+                                                {% for supplier in item.suppliers.all|slice:":3" %}
+                                                    <span class="supplier-badge" title="{{ supplier.supplier_name }}">
+                                                        <i class="fas fa-building me-1"></i>{{ supplier.supplier_name|truncatechars:15 }}
+                                                    </span>
+                                                {% endfor %}
+                                                {% if item.suppliers.count > 3 %}
+                                                    <span class="supplier-badge more-suppliers" title="View all {{ item.suppliers.count }} suppliers">
+                                                        +{{ item.suppliers.count|add:"-3" }} more
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            <div class="no-suppliers">
+                                                <i class="fas fa-exclamation-circle text-muted me-1"></i>
+                                                <span class="text-muted">No suppliers</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if item.unit %}
+                                        <span class="badge bg-warning text-dark">{{ item.unit }}</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">No Unit</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.hsn_code %}
+                                        <code>{{ item.hsn_code }}</code>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.standard_rate %}
+                                        <span class="badge bg-success">₹{{ item.standard_rate|floatformat:2 }}</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">No Rate</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.tax_rate %}
+                                        <span class="badge bg-secondary">{{ item.tax_rate }}%</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">No Tax</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.status == 'active' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elif item.status == 'inactive' %}
+                                        <span class="badge bg-warning text-dark">Inactive</span>
+                                    {% elif item.status == 'discontinued' %}
+                                        <span class="badge bg-danger">Discontinued</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">Unknown</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'items:item_detail' item.pk %}" 
+                                           class="btn btn-outline-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'items:item_edit' item.pk %}" 
+                                           class="btn btn-outline-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'items:item_delete' item.pk %}" 
+                                           class="btn btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-boxes fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Items Found</h4>
+                    <p class="text-muted">Start by adding your first item to the inventory.</p>
+                    <a href="{% url 'items:item_add' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus"></i> Add First Item
+                    </a>
+                </div>
+            {% endif %}
+        </div>
     </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Item pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 
-<!-- Pagination -->
-{% if is_paginated %}
-<nav aria-label="Items pagination" class="mt-4">
-    <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?{% if search_params %}{{ search_params.urlencode }}&{% endif %}page=1">
-                <i class="fas fa-angle-double-left"></i>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?{% if search_params %}{{ search_params.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
-                <i class="fas fa-angle-left"></i>
-            </a>
-        </li>
-        {% endif %}
-        
-        {% for page_num in page_obj.paginator.page_range %}
-        {% if page_num == page_obj.number %}
-        <li class="page-item active">
-            <span class="page-link">{{ page_num }}</span>
-        </li>
-        {% elif page_num > page_obj.number|add:'-3' and page_num < page_obj.number|add:'3' %}
-        <li class="page-item">
-            <a class="page-link" href="?{% if search_params %}{{ search_params.urlencode }}&{% endif %}page={{ page_num }}">
-                {{ page_num }}
-            </a>
-        </li>
-        {% endif %}
-        {% endfor %}
-        
-        {% if page_obj.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?{% if search_params %}{{ search_params.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
-                <i class="fas fa-angle-right"></i>
-            </a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="?{% if search_params %}{{ search_params.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}">
-                <i class="fas fa-angle-double-right"></i>
-            </a>
-        </li>
-        {% endif %}
-    </ul>
-    
-    <div class="text-center text-muted">
-        Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} items
-    </div>
-</nav>
-{% endif %}
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #007bff, #6610f2);
+}
 
-{% endblock %}
+.badge {
+    font-size: 0.75em;
+}
 
-{% block extra_js %}
-<script>
-// Accordion expand/collapse functionality
-document.getElementById('expandAll').addEventListener('click', function() {
-    document.querySelectorAll('.accordion-collapse').forEach(function(element) {
-        new bootstrap.Collapse(element, {show: true});
-    });
-});
+.card {
+    transition: transform 0.2s ease-in-out;
+}
 
-document.getElementById('collapseAll').addEventListener('click', function() {
-    document.querySelectorAll('.accordion-collapse.show').forEach(function(element) {
-        bootstrap.Collapse.getInstance(element).hide();
-    });
-});
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
 
-// Bulk selection functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const itemCheckboxes = document.querySelectorAll('.item-checkbox');
-    const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
-    const bulkPanel = document.getElementById('bulkActionsPanel');
-    const selectedCount = document.getElementById('selectedCount');
-    const selectedItems = document.getElementById('selectedItems');
-    const clearSelectionBtn = document.getElementById('clearSelection');
-    
-    function updateBulkActions() {
-        const selected = document.querySelectorAll('.item-checkbox:checked');
-        const count = selected.length;
-        
-        selectedCount.textContent = count + ' selected';
-        
-        // Clear previous hidden inputs
-        selectedItems.innerHTML = '';
-        
-        // Add hidden inputs for selected items
-        selected.forEach(function(checkbox) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'item_ids';
-            input.value = checkbox.value;
-            selectedItems.appendChild(input);
-        });
-        
-        // Show/hide bulk actions panel
-        bulkPanel.style.display = count > 0 ? 'block' : 'none';
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Suppliers Column Styling */
+.suppliers-column {
+    max-width: 250px;
+    padding: 0.25rem;
+}
+
+.suppliers-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.supplier-badge {
+    display: inline-block;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border-radius: 0.3rem;
+    white-space: nowrap;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background-color: #e8f4f8;
+    color: #0d6efd;
+    border: 1px solid #b6d7ff;
+    cursor: pointer;
+}
+
+.supplier-badge:hover {
+    background-color: #b6d7ff;
+    color: #084298;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.more-suppliers {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+.more-suppliers:hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.no-suppliers {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Responsive Design for Suppliers Column */
+@media (max-width: 1200px) {
+    .suppliers-column {
+        max-width: 200px;
     }
     
-    // Handle individual item checkbox changes
-    itemCheckboxes.forEach(function(checkbox) {
-        checkbox.addEventListener('change', function() {
-            updateBulkActions();
-            
-            // Update category checkbox state
-            const category = this.dataset.category;
-            const categoryCheckbox = document.querySelector(`[data-category="${category}"].category-checkbox`);
-            const categoryItems = document.querySelectorAll(`[data-category="${category}"].item-checkbox`);
-            const checkedCategoryItems = document.querySelectorAll(`[data-category="${category}"].item-checkbox:checked`);
-            
-            if (checkedCategoryItems.length === 0) {
-                categoryCheckbox.indeterminate = false;
-                categoryCheckbox.checked = false;
-            } else if (checkedCategoryItems.length === categoryItems.length) {
-                categoryCheckbox.indeterminate = false;
-                categoryCheckbox.checked = true;
-            } else {
-                categoryCheckbox.indeterminate = true;
-            }
-        });
-    });
+    .supplier-badge {
+        max-width: 120px;
+        font-size: 0.65rem;
+        padding: 0.15rem 0.3rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .suppliers-column {
+        max-width: 150px;
+    }
     
-    // Handle category checkbox changes
-    categoryCheckboxes.forEach(function(categoryCheckbox) {
-        categoryCheckbox.addEventListener('change', function() {
-            const category = this.dataset.category;
-            const categoryItems = document.querySelectorAll(`[data-category="${category}"].item-checkbox`);
-            
-            categoryItems.forEach(function(itemCheckbox) {
-                itemCheckbox.checked = categoryCheckbox.checked;
-            });
-            
-            updateBulkActions();
-        });
-    });
-    
-    // Clear selection button
-    clearSelectionBtn.addEventListener('click', function() {
-        itemCheckboxes.forEach(function(checkbox) {
-            checkbox.checked = false;
-        });
-        categoryCheckboxes.forEach(function(checkbox) {
-            checkbox.checked = false;
-            checkbox.indeterminate = false;
-        });
-        updateBulkActions();
-    });
-    
-    // Confirm bulk actions
-    document.getElementById('bulkActionForm').addEventListener('submit', function(e) {
-        const action = e.submitter.value;
-        const count = document.querySelectorAll('.item-checkbox:checked').length;
-        
-        let message = '';
-        switch(action) {
-            case 'activate':
-                message = `Are you sure you want to activate ${count} selected items?`;
-                break;
-            case 'deactivate':
-                message = `Are you sure you want to deactivate ${count} selected items?`;
-                break;
-            case 'discontinue':
-                message = `Are you sure you want to discontinue ${count} selected items? This action should be used carefully.`;
-                break;
-        }
-        
-        if (!confirm(message)) {
-            e.preventDefault();
-        }
-    });
-});
-</script>
+    .supplier-badge {
+        max-width: 100px;
+    }
+}
+
+/* Table Row Hover Effect */
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table-hover tbody tr:hover .supplier-badge {
+    transform: scale(1.02);
+}
+</style>
 {% endblock %}

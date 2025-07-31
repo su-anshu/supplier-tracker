@@ -202,3 +202,124 @@ class ItemSupplier(models.Model):
     
     def __str__(self):
         return f"{self.item.item_name} - {self.supplier_name}"
+
+
+# Item Transfer Tracking Model (MVP Feature)
+class ItemTransfer(models.Model):
+    """
+    Track item transfers between locations or processes
+    """
+    TRANSFER_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_transit', 'In Transit'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    transfer_id = models.CharField(
+        max_length=20,
+        unique=True,
+        editable=False,
+        help_text="Auto-generated Transfer ID"
+    )
+    item = models.ForeignKey(
+        Item,
+        on_delete=models.CASCADE,
+        related_name='transfers',
+        help_text="Item being transferred"
+    )
+    quantity = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+        help_text="Quantity being transferred"
+    )
+    from_location = models.CharField(
+        max_length=100,
+        help_text="Source location"
+    )
+    to_location = models.CharField(
+        max_length=100,
+        help_text="Destination location"
+    )
+    transfer_date = models.DateTimeField(
+        default=timezone.now,
+        help_text="When the transfer was initiated"
+    )
+    expected_completion = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Expected completion date/time"
+    )
+    actual_completion = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="Actual completion date/time"
+    )
+    status = models.CharField(
+        max_length=15,
+        choices=TRANSFER_STATUS_CHOICES,
+        default='pending',
+        help_text="Current status of the transfer"
+    )
+    transfer_reason = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Reason for the transfer"
+    )
+    remarks = models.TextField(
+        blank=True,
+        help_text="Additional remarks or notes"
+    )
+    created_by = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="User who initiated the transfer"
+    )
+    
+    # Audit fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'item_transfers'
+        ordering = ['-transfer_date']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['transfer_date']),
+            models.Index(fields=['item']),
+        ]
+    
+    def __str__(self):
+        return f"{self.transfer_id} - {self.item.item_name}"
+    
+    def save(self, *args, **kwargs):
+        """Auto-generate transfer ID if not provided"""
+        if not self.transfer_id:
+            # Get the last transfer ID and increment
+            last_transfer = ItemTransfer.objects.filter(
+                transfer_id__startswith='TRF'
+            ).order_by('-id').first()
+            
+            if last_transfer:
+                try:
+                    last_number = int(last_transfer.transfer_id.split('-')[1])
+                    new_number = last_number + 1
+                except (ValueError, IndexError):
+                    new_number = 1
+            else:
+                new_number = 1
+                
+            self.transfer_id = f"TRF-{new_number:04d}"
+        
+        super().save(*args, **kwargs)
+    
+    @property
+    def is_completed(self):
+        return self.status == 'completed'
+    
+    @property
+    def is_overdue(self):
+        if self.expected_completion and not self.is_completed:
+            return timezone.now() > self.expected_completion
+        return False

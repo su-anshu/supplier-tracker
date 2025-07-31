@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mithila Foods{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-success text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-0">
+                                <i class="fas fa-list-alt"></i> {{ title }}
+                            </h2>
+                            <p class="mb-0">Track and manage all item transfers</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{% url 'items:item_transfer_widget' %}" class="btn btn-light btn-lg">
+                                    <i class="fas fa-plus"></i> New Transfer
+                                </a>
+                                <a href="{% url 'items:item_list' %}" class="btn btn-outline-light">
+                                    <i class="fas fa-boxes"></i> Items
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-list-alt fa-2x text-primary mb-2"></i>
+                    <h4 class="text-primary">{{ total_transfers }}</h4>
+                    <p class="mb-0">Total Transfers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                    <h4 class="text-warning">
+                        {{ transfers|dictsort:"status"|dictsortreversed:"status" | length }}
+                    </h4>
+                    <p class="mb-0">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-truck fa-2x text-info mb-2"></i>
+                    <h4 class="text-info">0</h4>
+                    <p class="mb-0">In Transit</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4 class="text-success">0</h4>
+                    <p class="mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-search"></i> Search & Filter Transfers</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search by Transfer ID, Item Name, or Location..."
+                           value="{{ search_query }}">
+                </div>
+                <div class="col-md-4">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        {% for status_code, status_name in status_choices %}
+                            <option value="{{ status_code }}" 
+                                    {% if status_filter == status_code %}selected{% endif %}>
+                                {{ status_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transfers Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Transfer Records
+                {% if transfers %}
+                    <span class="badge bg-primary">{{ transfers|length }} transfers</span>
+                {% endif %}
+            </h5>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-secondary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if transfers %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Transfer ID</th>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th>From → To</th>
+                                <th>Transfer Date</th>
+                                <th>Status</th>
+                                <th>Created By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transfer in transfers %}
+                            <tr>
+                                <td>
+                                    <strong class="text-primary">{{ transfer.transfer_id }}</strong>
+                                </td>
+                                <td>
+                                    <strong>{{ transfer.item.item_name }}</strong>
+                                    <br><small class="text-muted">{{ transfer.item.item_id }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ transfer.quantity }} {{ transfer.item.unit }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-secondary me-1">{{ transfer.from_location }}</span>
+                                        <i class="fas fa-arrow-right text-muted mx-1"></i>
+                                        <span class="badge bg-primary">{{ transfer.to_location }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <small>{{ transfer.transfer_date|date:"M d, Y" }}</small>
+                                    <br><small class="text-muted">{{ transfer.transfer_date|time:"H:i" }}</small>
+                                </td>
+                                <td>
+                                    {% if transfer.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% elif transfer.status == 'in_transit' %}
+                                        <span class="badge bg-info">In Transit</span>
+                                    {% elif transfer.status == 'completed' %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% elif transfer.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">{{ transfer.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ transfer.created_by|default:"System" }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-info" title="View Details" 
+                                                onclick="viewTransferDetails('{{ transfer.transfer_id }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        {% if transfer.status == 'pending' %}
+                                        <button class="btn btn-outline-warning" title="Update Status"
+                                                onclick="updateTransferStatus('{{ transfer.id }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-exchange-alt fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Transfers Found</h4>
+                    <p class="text-muted">Start by creating your first item transfer.</p>
+                    <a href="{% url 'items:item_transfer_widget' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus"></i> Create First Transfer
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Transfer pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<style>
+.bg-gradient-success {
+    background: linear-gradient(45deg, #28a745, #20c997);
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0,123,255,.075);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+
+<script>
+function viewTransferDetails(transferId) {
+    // TODO: Implement transfer details modal or page
+    alert('Transfer Details for ' + transferId + ' (Feature coming soon!)');
+}
+
+function updateTransferStatus(transferId) {
+    // TODO: Implement status update functionality
+    alert('Update Status for Transfer ID ' + transferId + ' (Feature coming soon!)');
+}
+</script>
+{% endblock %}

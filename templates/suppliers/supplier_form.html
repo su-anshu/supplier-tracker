@@ -22,27 +22,27 @@
         <div class="card-body">
             <!-- Compulsory Fields Info - Permanent Display -->
             <div class="alert alert-info mb-4" style="border-left: 4px solid #17a2b8;">
-                <h6><i class="fas fa-info-circle"></i> Compulsory Fields for Item Master:</h6>
+                <h6><i class="fas fa-info-circle"></i> Compulsory Fields for Supplier Master:</h6>
                 <div class="row">
                     <div class="col-md-2">
-                        <strong>✓ Item ID:</strong> Auto-generated
+                        <strong>✓ Supplier ID:</strong> Auto-generated
                     </div>
                     <div class="col-md-2">
-                        <strong>✓ Item Name:</strong> Required
+                        <strong>✓ Name:</strong> Required
                     </div>
                     <div class="col-md-2">
-                        <strong>✓ Category:</strong> Required
+                        <strong>✓ Contact Person:</strong> Required
                     </div>
                     <div class="col-md-3">
-                        <strong>✓ Unit:</strong> Required
+                        <strong>✓ Phone Number:</strong> Required
                     </div>
                     <div class="col-md-3">
-                        <strong>✓ Tax Rate:</strong> Required
+                        <strong>✓ Address:</strong> Required
                     </div>
                 </div>
                 <div class="mt-2">
                     <small class="text-muted">
-                        <strong>Note:</strong> HSN code, standard rate, and other fields are optional.
+                        <strong>Note:</strong> Email, credit limit, and bank details are optional features.
                     </small>
                 </div>
             </div>
@@ -54,14 +54,14 @@
 
     <!-- Back to List -->
     <div class="text-center mt-4">
-        <a href="{% url 'items:item_list' %}" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left"></i> Back to Item List
+        <a href="{% url 'suppliers:supplier_list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Supplier List
         </a>
     </div>
 </div>
 
 <style>
-/* Professional styling for better form experience */
+/* Enhanced styling for better form experience */
 .form-control:required,
 .form-select:required {
     border-left: 3px solid #dc3545;
@@ -69,8 +69,8 @@
 
 .form-control:focus,
 .form-select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
 .card {
@@ -79,6 +79,24 @@
 
 .card:hover {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* File upload styling */
+input[type="file"] {
+    border: 2px dashed #dee2e6;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    background-color: #f8f9fa;
+}
+
+input[type="file"]:focus {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+}
+
+/* Badge styling */
+.badge {
+    font-size: 0.75em;
 }
 
 /* Animation for success states */
@@ -95,6 +113,11 @@
 
 .alert {
     animation: fadeInUp 0.5s ease-out;
+}
+
+/* Enhanced feature highlighting */
+.border-left-info {
+    border-left: 4px solid #17a2b8 !important;
 }
 </style>
 
@@ -114,16 +137,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Enhanced field highlighting for required fields
-    const requiredFields = ['item_name', 'category', 'unit', 'tax_rate'];
-    requiredFields.forEach(fieldName => {
+    // File upload preview
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const fileName = this.files[0]?.name;
+            if (fileName) {
+                const feedback = document.createElement('div');
+                feedback.className = 'text-success mt-2';
+                feedback.innerHTML = `<i class="fas fa-check-circle"></i> Selected: ${fileName}`;
+                
+                // Remove existing feedback
+                const existingFeedback = this.parentNode.querySelector('.text-success');
+                if (existingFeedback) {
+                    existingFeedback.remove();
+                }
+                
+                this.parentNode.appendChild(feedback);
+            }
+        });
+    }
+    
+    // Enhanced feature highlighting
+    const enhancedFields = ['email', 'credit_limit', 'bank_name', 'account_number', 'ifsc_code', 'upi_scanner_image'];
+    enhancedFields.forEach(fieldName => {
         const field = document.querySelector(`[name="${fieldName}"]`);
         if (field) {
             field.addEventListener('focus', function() {
-                this.closest('.form-group, .mb-3')?.classList.add('border-left-primary');
+                this.closest('.form-group, .mb-3')?.classList.add('border-left-info');
             });
             field.addEventListener('blur', function() {
-                this.closest('.form-group, .mb-3')?.classList.remove('border-left-primary');
+                this.closest('.form-group, .mb-3')?.classList.remove('border-left-info');
             });
         }
     });

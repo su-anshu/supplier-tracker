@@ -8,8 +8,8 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .models import Item, ItemCategory, ItemStatus
-from .forms import ItemForm, ItemSearchForm, BulkUploadForm
+from .models import Item, ItemCategory, ItemStatus, ItemTransfer
+from .forms import ItemForm, ItemSearchForm, BulkUploadForm, ItemTransferForm, BulkItemSelectForm
 
 class ItemListView(ListView):
     """
@@ -49,6 +49,9 @@ class ItemListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
+        # Add title
+        context['title'] = 'Item Management'
+        
         # Add search form
         context['search_form'] = ItemSearchForm(self.request.GET)
         
@@ -58,6 +61,7 @@ class ItemListView(ListView):
         # Add general statistics
         context['total_items'] = Item.objects.count()
         context['active_items'] = Item.objects.filter(status=ItemStatus.ACTIVE).count()
+        context['inactive_items'] = Item.objects.filter(status=ItemStatus.INACTIVE).count()
         context['categories_count'] = Item.objects.values('category').distinct().count()
         
         # Preserve search parameters for pagination
@@ -114,6 +118,7 @@ class ItemCreateView(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Add New Item'
+        context['form_action'] = 'Create'
         context['button_text'] = 'Create Item'
         return context
 
@@ -139,6 +144,9 @@ class ItemUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = f'Edit Item - {self.object.item_name}'
+        context['form_action'] = 'Update'
+        context['button_text'] = 'Update Item'
+        return context
         context['button_text'] = 'Update Item'
         return context
 
@@ -206,19 +214,31 @@ def items_dashboard(request):
     """
     Dashboard view with item statistics and quick actions
     """
+    # Get category statistics
+    category_stats = {}
+    category_breakdown = Item.objects.values('category').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    for category_data in category_breakdown:
+        if category_data['category']:
+            # Get display name for category
+            category_display = dict(ItemCategory.choices).get(category_data['category'], category_data['category'])
+            category_stats[category_display] = category_data['count']
+    
     context = {
+        'title': 'Item Dashboard',
         'total_items': Item.objects.count(),
         'active_items': Item.objects.filter(status=ItemStatus.ACTIVE).count(),
         'inactive_items': Item.objects.filter(status=ItemStatus.INACTIVE).count(),
         'discontinued_items': Item.objects.filter(status=ItemStatus.DISCONTINUED).count(),
+        'categories_count': Item.objects.values('category').distinct().count(),
         
-        # Category-wise breakdown
-        'category_breakdown': Item.objects.values('category').annotate(
-            count=Count('id')
-        ).order_by('-count'),
+        # Category-wise breakdown for charts
+        'category_stats': category_stats,
         
         # Recent items
-        'recent_items': Item.objects.order_by('-created_at')[:5],
+        'recent_items': Item.objects.order_by('-created_at')[:10],
         
         # Items needing attention (low reorder levels)
         'items_needing_attention': Item.objects.filter(
@@ -654,3 +674,177 @@ def handler404(request, exception):
 def handler500(request):
     """Custom 500 error handler"""
     return render(request, 'errors/500.html', status=500)
+
+
+# Transfer Widget Views
+def item_transfer_widget(request):
+    """
+    Widget for transferring individual items
+    """
+    if request.method == 'POST':
+        form = ItemTransferForm(request.POST)
+        if form.is_valid():
+            # Create transfer record
+            transfer = ItemTransfer.objects.create(
+                item=form.cleaned_data['item'],
+                quantity=form.cleaned_data['quantity'],
+                from_location=form.cleaned_data['from_location'],
+                to_location=form.cleaned_data['to_location'],
+                transfer_reason=form.cleaned_data['transfer_reason'],
+                remarks=form.cleaned_data['remarks'],
+                created_by=request.user.username if hasattr(request, 'user') and request.user.is_authenticated else 'Anonymous'
+            )
+            
+            messages.success(
+                request,
+                f"Transfer {transfer.transfer_id} created successfully! "
+                f"{transfer.quantity} {transfer.item.unit} of {transfer.item.item_name} "
+                f"from {transfer.from_location} to {transfer.to_location}."
+            )
+            
+            return redirect('items:transfer_list')
+    else:
+        form = ItemTransferForm()
+    
+    return render(request, 'items/transfer_widget.html', {
+        'form': form,
+        'title': 'Item Transfer Widget'
+    })
+
+def transfer_list(request):
+    """
+    List all transfers with filtering and search
+    """
+    transfers = ItemTransfer.objects.select_related('item').all()
+    
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        transfers = transfers.filter(
+            Q(transfer_id__icontains=search_query) |
+            Q(item__item_name__icontains=search_query) |
+            Q(from_location__icontains=search_query) |
+            Q(to_location__icontains=search_query)
+        )
+    
+    # Status filter
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        transfers = transfers.filter(status=status_filter)
+    
+    # Pagination
+    paginator = Paginator(transfers, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'transfers': page_obj,
+        'title': 'Transfer History',
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'status_choices': ItemTransfer.TRANSFER_STATUS_CHOICES,
+        'total_transfers': transfers.count(),
+        'is_paginated': page_obj.has_other_pages(),
+        'page_obj': page_obj,
+    }
+    
+    return render(request, 'items/transfer_list.html', context)
+
+def bulk_item_select(request):
+    """
+    Bulk item selection for various operations
+    """
+    if request.method == 'POST':
+        form = BulkItemSelectForm(request.POST)
+        if form.is_valid():
+            selected_items = form.cleaned_data['selected_items']
+            action = form.cleaned_data['action']
+            
+            if action == 'transfer':
+                # Store selected items in session for transfer form
+                request.session['bulk_transfer_items'] = [item.id for item in selected_items]
+                return redirect('items:bulk_transfer')
+            
+            elif action == 'activate':
+                updated_count = selected_items.update(status='active')
+                messages.success(request, f"Successfully activated {updated_count} items.")
+                
+            elif action == 'deactivate':
+                updated_count = selected_items.update(status='inactive')
+                messages.success(request, f"Successfully deactivated {updated_count} items.")
+                
+            elif action == 'export':
+                # TODO: Implement CSV export
+                messages.info(request, "Export functionality coming soon!")
+            
+            return redirect('items:item_list')
+    else:
+        form = BulkItemSelectForm()
+    
+    return render(request, 'items/bulk_select.html', {
+        'form': form,
+        'title': 'Bulk Item Operations'
+    })
+
+def bulk_transfer(request):
+    """
+    Handle bulk transfer of selected items
+    """
+    # Get selected items from session
+    item_ids = request.session.get('bulk_transfer_items', [])
+    if not item_ids:
+        messages.error(request, "No items selected for transfer.")
+        return redirect('items:bulk_select')
+    
+    selected_items = Item.objects.filter(id__in=item_ids)
+    
+    if request.method == 'POST':
+        # Process bulk transfer
+        from_location = request.POST.get('from_location')
+        to_location = request.POST.get('to_location')
+        transfer_reason = request.POST.get('transfer_reason', '')
+        
+        if from_location and to_location:
+            transfers_created = 0
+            for item in selected_items:
+                # Default quantity of 1 for bulk transfers (can be customized)
+                quantity = request.POST.get(f'quantity_{item.id}', 1)
+                try:
+                    quantity = float(quantity)
+                    if quantity > 0:
+                        ItemTransfer.objects.create(
+                            item=item,
+                            quantity=quantity,
+                            from_location=from_location,
+                            to_location=to_location,
+                            transfer_reason=transfer_reason,
+                            created_by=request.user.username if hasattr(request, 'user') and request.user.is_authenticated else 'Anonymous'
+                        )
+                        transfers_created += 1
+                except (ValueError, TypeError):
+                    continue
+            
+            if transfers_created > 0:
+                messages.success(
+                    request,
+                    f"Successfully created {transfers_created} transfer records from "
+                    f"{from_location} to {to_location}."
+                )
+            else:
+                messages.error(request, "No valid transfers could be created.")
+            
+            # Clear session data
+            if 'bulk_transfer_items' in request.session:
+                del request.session['bulk_transfer_items']
+            
+            return redirect('items:transfer_list')
+        else:
+            messages.error(request, "Both from and to locations are required.")
+    
+    context = {
+        'selected_items': selected_items,
+        'title': 'Bulk Transfer Items',
+        'item_count': selected_items.count()
+    }
+    
+    return render(request, 'items/bulk_transfer.html', context)

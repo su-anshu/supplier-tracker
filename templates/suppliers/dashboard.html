@@ -7,21 +7,21 @@
     <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-gradient-primary text-white">
+            <div class="card bg-gradient-success text-white">
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h2 class="mb-1">
                                 <i class="fas fa-chart-bar"></i> {{ title }}
                             </h2>
-                            <p class="mb-0">Complete overview of items with comprehensive management features</p>
+                            <p class="mb-0">Complete overview of suppliers with optional features</p>
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="btn-group">
-                                <a href="{% url 'items:item_add' %}" class="btn btn-light">
-                                    <i class="fas fa-plus"></i> Add Item
+                                <a href="{% url 'suppliers:supplier_add' %}" class="btn btn-light">
+                                    <i class="fas fa-plus"></i> Add Supplier
                                 </a>
-                                <a href="{% url 'items:item_list' %}" class="btn btn-outline-light">
+                                <a href="{% url 'suppliers:supplier_list' %}" class="btn btn-outline-light">
                                     <i class="fas fa-list"></i> View All
                                 </a>
                             </div>
@@ -37,9 +37,9 @@
         <div class="col-md-3">
             <div class="card border-primary text-center">
                 <div class="card-body">
-                    <i class="fas fa-boxes fa-3x text-primary mb-3"></i>
-                    <h3 class="text-primary">{{ total_items }}</h3>
-                    <p class="mb-0">Total Items</p>
+                    <i class="fas fa-building fa-3x text-primary mb-3"></i>
+                    <h3 class="text-primary">{{ total_suppliers }}</h3>
+                    <p class="mb-0">Total Suppliers</p>
                 </div>
             </div>
         </div>
@@ -47,26 +47,26 @@
             <div class="card border-success text-center">
                 <div class="card-body">
                     <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                    <h3 class="text-success">{{ active_items }}</h3>
-                    <p class="mb-0">Active Items</p>
+                    <h3 class="text-success">{{ active_suppliers }}</h3>
+                    <p class="mb-0">Active Suppliers</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card border-warning text-center">
                 <div class="card-body">
-                    <i class="fas fa-pause-circle fa-3x text-warning mb-3"></i>
-                    <h3 class="text-warning">{{ inactive_items }}</h3>
-                    <p class="mb-0">Inactive Items</p>
+                    <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                    <h3 class="text-warning">{{ pending_suppliers }}</h3>
+                    <p class="mb-0">Pending Approval</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card border-info text-center">
                 <div class="card-body">
-                    <i class="fas fa-tags fa-3x text-info mb-3"></i>
-                    <h3 class="text-info">{{ categories_count }}</h3>
-                    <p class="mb-0">Categories</p>
+                    <i class="fas fa-credit-card fa-3x text-info mb-3"></i>
+                    <h3 class="text-info">{{ enhanced_features_stats.credit_limit_count }}</h3>
+                    <p class="mb-0">With Credit Limits</p>
                 </div>
             </div>
         </div>
@@ -77,7 +77,7 @@
         <div class="col-md-6 mb-4">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Items by Category</h5>
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Suppliers by Category</h5>
                 </div>
                 <div class="card-body">
                     {% if category_stats %}
@@ -87,120 +87,109 @@
                                 <div>
                                     <span class="badge bg-primary">{{ count }}</span>
                                     <div class="progress" style="width: 100px; height: 8px;">
-                                        <div class="progress-bar bg-primary" style="width: {% widthratio count total_items 100 %}%"></div>
+                                        <div class="progress-bar" style="width: 50%"></div>
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
                     {% else %}
-                        <p class="text-muted text-center">No category data available.</p>
+                        <p class="text-muted text-center">No supplier categories data available.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Status Breakdown -->
+        <!-- Rating Breakdown -->
         <div class="col-md-6 mb-4">
             <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Items by Status</h5>
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-star"></i> Suppliers by Rating</h5>
                 </div>
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Active Items</span>
-                        <div>
-                            <span class="badge bg-success">{{ active_items }}</span>
-                            <div class="progress" style="width: 100px; height: 8px;">
-                                <div class="progress-bar bg-success" style="width: {% widthratio active_items total_items 100 %}%"></div>
+                    {% if rating_stats %}
+                        {% for rating, count in rating_stats.items %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>{{ rating }}</span>
+                                <div>
+                                    <span class="badge bg-warning text-dark">{{ count }}</span>
+                                    <div class="progress" style="width: 100px; height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 50%"></div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Inactive Items</span>
-                        <div>
-                            <span class="badge bg-warning text-dark">{{ inactive_items }}</span>
-                            <div class="progress" style="width: 100px; height: 8px;">
-                                <div class="progress-bar bg-warning" style="width: {% widthratio inactive_items total_items 100 %}%"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Discontinued Items</span>
-                        <div>
-                            <span class="badge bg-danger">{{ discontinued_items }}</span>
-                            <div class="progress" style="width: 100px; height: 8px;">
-                                <div class="progress-bar bg-danger" style="width: {% widthratio discontinued_items total_items 100 %}%"></div>
-                            </div>
-                        </div>
-                    </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No supplier ratings data available.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Items -->
+    <!-- Recent Suppliers -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Items</h5>
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Suppliers</h5>
                 </div>
                 <div class="card-body">
-                    {% if recent_items %}
+                    {% if recent_suppliers %}
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Item</th>
+                                        <th>Supplier</th>
+                                        <th>Contact Person</th>
                                         <th>Category</th>
-                                        <th>Unit</th>
-                                        <th>Standard Rate</th>
-                                        <th>Tax Rate</th>
                                         <th>Status</th>
+                                        <th>Enhanced Features</th>
                                         <th>Created</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for item in recent_items %}
+                                    {% for supplier in recent_suppliers %}
                                     <tr>
                                         <td>
-                                            <strong>{{ item.item_name }}</strong><br>
-                                            <small class="text-muted">{{ item.item_id }}</small>
+                                            <strong>{{ supplier.supplier_name }}</strong><br>
+                                            <small class="text-muted">{{ supplier.supplier_id }}</small>
+                                        </td>
+                                        <td>{{ supplier.contact_person }}</td>
+                                        <td>
+                                            <span class="badge bg-info">{{ supplier.get_category_display }}</span>
                                         </td>
                                         <td>
-                                            <span class="badge bg-info">{{ item.get_category_display }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-warning text-dark">{{ item.unit }}</span>
-                                        </td>
-                                        <td>
-                                            {% if item.standard_rate %}
-                                                <span class="badge bg-success">₹{{ item.standard_rate|floatformat:2 }}</span>
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ item.tax_rate }}%</span>
-                                        </td>
-                                        <td>
-                                            {% if item.status == 'active' %}
+                                            {% if supplier.status == 'active' %}
                                                 <span class="badge bg-success">Active</span>
-                                            {% elif item.status == 'inactive' %}
-                                                <span class="badge bg-warning text-dark">Inactive</span>
                                             {% else %}
-                                                <span class="badge bg-danger">Discontinued</span>
+                                                <span class="badge bg-secondary">{{ supplier.get_status_display }}</span>
                                             {% endif %}
                                         </td>
-                                        <td>{{ item.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                {% if supplier.email %}
+                                                    <i class="fas fa-envelope text-success" title="Email available"></i>
+                                                {% endif %}
+                                                {% if supplier.credit_limit %}
+                                                    <i class="fas fa-money-bill-wave text-info" title="Credit limit set"></i>
+                                                {% endif %}
+                                                {% if supplier.has_bank_details %}
+                                                    <i class="fas fa-university text-warning" title="Bank details available"></i>
+                                                {% endif %}
+                                                {% if supplier.has_upi_scanner %}
+                                                    <i class="fas fa-qrcode text-primary" title="UPI scanner available"></i>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>{{ supplier.created_at|date:"M d, Y" }}</td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <a href="{% url 'items:item_detail' item.pk %}" 
+                                                <a href="{% url 'suppliers:supplier_detail' supplier.pk %}" 
                                                    class="btn btn-outline-info" title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="{% url 'items:item_edit' item.pk %}" 
+                                                <a href="{% url 'suppliers:supplier_edit' supplier.pk %}" 
                                                    class="btn btn-outline-warning" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
@@ -213,7 +202,7 @@
                         </div>
                     {% else %}
                         <div class="alert alert-info text-center">
-                            <i class="fas fa-info-circle"></i> No items found. Start by adding your first item.
+                            <i class="fas fa-info-circle"></i> No suppliers found. Start by adding your first supplier.
                         </div>
                     {% endif %}
                 </div>
@@ -231,22 +220,22 @@
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-md-4 mb-3">
-                            <a href="{% url 'items:item_add' %}" class="btn btn-success btn-lg w-100">
+                            <a href="{% url 'suppliers:supplier_add' %}" class="btn btn-primary btn-lg w-100">
                                 <i class="fas fa-plus fa-2x mb-2"></i><br>
-                                Add New Item
+                                Add New Supplier
                             </a>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <a href="{% url 'items:item_list' %}" class="btn btn-info btn-lg w-100">
+                            <a href="{% url 'suppliers:supplier_list' %}" class="btn btn-info btn-lg w-100">
                                 <i class="fas fa-list fa-2x mb-2"></i><br>
-                                View All Items
+                                View All Suppliers
                             </a>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <a href="{% url 'items:bulk_upload' %}" class="btn btn-primary btn-lg w-100">
-                                <i class="fas fa-file-excel fa-2x mb-2"></i><br>
-                                Bulk Upload
-                            </a>
+                            <button class="btn btn-success btn-lg w-100" onclick="showFeatures()">
+                                <i class="fas fa-star fa-2x mb-2"></i><br>
+                                Optional Features
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -255,11 +244,18 @@
     </div>
 </div>
 
-<style>
-.bg-gradient-primary {
-    background: linear-gradient(45deg, #007bff, #6610f2);
+<script>
+function showFeatures() {
+    alert('Enhanced Features Active:\n\n✅ Email Field (Optional)\n✅ Credit Limit (Optional)\n✅ Bank Details (Optional)\n✅ UPI Scanner Image (Optional)\n✅ Professional Forms\n✅ Enhanced Dashboard');
 }
 
+// Auto-refresh dashboard every 5 minutes
+setInterval(function() {
+    location.reload();
+}, 300000);
+</script>
+
+<style>
 .card {
     transition: transform 0.2s ease-in-out;
 }
@@ -277,6 +273,10 @@
 
 .badge {
     font-size: 0.8em;
+}
+
+.bg-gradient-success {
+    background: linear-gradient(45deg, #28a745, #20c997);
 }
 </style>
 {% endblock %}

@@ -23,7 +23,10 @@ from django.shortcuts import redirect
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('items/', include('items.urls')),
-    path('', lambda request: redirect('items:item_list')),  # Redirect root to items list
+    path('suppliers/', include('suppliers.urls')),
+    path('transporters/', include('transporters.urls')),
+    path('purchase-orders/', include('purchase_orders.urls')),
+    path('', lambda request: redirect('purchase_orders:po_list')),  # Redirect to PO list
 ]
 
 # Serve static and media files during development

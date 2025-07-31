@@ -1,0 +1,409 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mithila Foods{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-0">
+                                <i class="fas fa-file-invoice"></i> {{ title }}
+                            </h2>
+                            <p class="mb-0">Create comprehensive purchase orders with multiple items</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'purchase_orders:po_list' %}" class="btn btn-outline-light">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Messages -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Main Form -->
+    <form method="post" id="po-form">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- Left Column - PO Details -->
+            <div class="col-lg-8">
+                <!-- Purchase Order Information -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-invoice"></i> Purchase Order Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Supplier *</label>
+                                <select name="supplier" class="form-select" required>
+                                    <option value="">Select Supplier</option>
+                                    {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}">{{ supplier.supplier_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Transporter</label>
+                                <select name="transporter" class="form-select">
+                                    <option value="">Select Transporter (Optional)</option>
+                                    {% for transporter in transporters %}
+                                    <option value="{{ transporter.id }}">{{ transporter.transporter_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">PO Date *</label>
+                                <input type="date" name="po_date" class="form-control" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Expected Delivery *</label>
+                                <input type="date" name="expected_delivery_date" class="form-control" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Priority</label>
+                                <select name="priority" class="form-select">
+                                    <option value="normal">Normal</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Payment Terms</label>
+                                <select name="payment_terms" class="form-select">
+                                    <option value="net_30">Net 30 Days</option>
+                                    <option value="net_15">Net 15 Days</option>
+                                    <option value="net_60">Net 60 Days</option>
+                                    <option value="immediate">Immediate</option>
+                                    <option value="advance">Advance Payment</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Reference Number</label>
+                                <input type="text" name="reference_number" class="form-control" placeholder="External reference (optional)">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Address *</label>
+                            <textarea name="delivery_address" class="form-control" rows="3" placeholder="Complete delivery address" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Contact Person *</label>
+                                <input type="text" name="delivery_contact_person" class="form-control" placeholder="Contact person name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Contact Phone *</label>
+                                <input type="text" name="delivery_phone" class="form-control" placeholder="+91 9876543210" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Section -->
+                <div class="card mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shopping-cart"></i> Order Items
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> At least one item is required. You can add multiple items to a single purchase order.
+                        </div>
+                        
+                        <!-- Simple item addition -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Select Item</label>
+                                <select class="form-select" id="temp-item-select">
+                                    <option value="">Choose an item...</option>
+                                    {% for item in items %}
+                                    <option value="{{ item.id }}" data-rate="{{ item.standard_rate }}" data-tax="{{ item.tax_rate }}" data-unit="{{ item.unit }}">
+                                        {{ item.item_name }} ({{ item.item_id }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="temp-quantity" step="0.01" min="0.01">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Rate</label>
+                                <input type="number" class="form-control" id="temp-rate" step="0.01" min="0.01">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Tax %</label>
+                                <input type="number" class="form-control" id="temp-tax" step="0.01" min="0" max="100" value="18">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" class="btn btn-primary w-100" onclick="addItem()">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Items List -->
+                        <div id="items-list">
+                            <div class="alert alert-secondary">
+                                No items added yet. Add items using the form above.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Summary & Actions -->
+            <div class="col-lg-4">
+                <!-- Order Summary -->
+                <div class="card sticky-top">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calculator"></i> Order Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="order-summary">
+                            <div class="row mb-2">
+                                <div class="col-6">Subtotal:</div>
+                                <div class="col-6 text-end">
+                                    <strong id="summary-subtotal">₹0.00</strong>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6">Tax Amount:</div>
+                                <div class="col-6 text-end">
+                                    <strong id="summary-tax">₹0.00</strong>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6">Discount:</div>
+                                <div class="col-6 text-end">
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" name="discount_percentage" class="form-control" step="0.01" min="0" max="100" value="0.00" id="discount-input">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-6"><strong>Total Amount:</strong></div>
+                                <div class="col-6 text-end">
+                                    <h4 class="text-success mb-0" id="summary-total">₹0.00</h4>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Quick Actions -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Create Purchase Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Fields -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Additional Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Notes</label>
+                                <textarea name="notes" class="form-control" rows="3" placeholder="Additional notes (optional)"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Terms & Conditions</label>
+                                <textarea name="terms_and_conditions" class="form-control" rows="3" placeholder="Terms and conditions (optional)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden field for items data -->
+        <input type="hidden" name="items_data" id="items-data" value="">
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let itemsList = [];
+let itemCounter = 0;
+
+// Add item to the list
+function addItem() {
+    const itemSelect = document.getElementById('temp-item-select');
+    const quantity = document.getElementById('temp-quantity').value;
+    const rate = document.getElementById('temp-rate').value;
+    const tax = document.getElementById('temp-tax').value;
+    
+    if (!itemSelect.value || !quantity || !rate) {
+        alert('Please fill in all required fields (Item, Quantity, Rate)');
+        return;
+    }
+    
+    const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+    const item = {
+        id: itemCounter++,
+        item_id: itemSelect.value,
+        item_name: selectedOption.text,
+        quantity: parseFloat(quantity),
+        rate: parseFloat(rate),
+        tax_rate: parseFloat(tax) || 0,
+        unit: selectedOption.dataset.unit || 'pcs'
+    };
+    
+    // Calculate totals
+    item.line_total = item.quantity * item.rate;
+    item.tax_amount = (item.line_total * item.tax_rate) / 100;
+    item.total_with_tax = item.line_total + item.tax_amount;
+    
+    itemsList.push(item);
+    renderItemsList();
+    calculateOrderTotal();
+    
+    // Clear form
+    itemSelect.value = '';
+    document.getElementById('temp-quantity').value = '';
+    document.getElementById('temp-rate').value = '';
+    document.getElementById('temp-tax').value = '18';
+}
+
+// Remove item from list
+function removeItem(itemId) {
+    itemsList = itemsList.filter(item => item.id !== itemId);
+    renderItemsList();
+    calculateOrderTotal();
+}
+
+// Render items list
+function renderItemsList() {
+    const container = document.getElementById('items-list');
+    
+    if (itemsList.length === 0) {
+        container.innerHTML = '<div class="alert alert-secondary">No items added yet. Add items using the form above.</div>';
+        return;
+    }
+    
+    let html = '<div class="table-responsive"><table class="table table-bordered">';
+    html += '<thead class="table-light"><tr>';
+    html += '<th>Item</th><th>Qty</th><th>Rate</th><th>Line Total</th><th>Tax</th><th>Total</th><th>Action</th>';
+    html += '</tr></thead><tbody>';
+    
+    itemsList.forEach(item => {
+        html += `<tr>
+            <td><strong>${item.item_name}</strong><br><small class="text-muted">${item.unit}</small></td>
+            <td>${item.quantity}</td>
+            <td>₹${item.rate.toFixed(2)}</td>
+            <td>₹${item.line_total.toFixed(2)}</td>
+            <td>₹${item.tax_amount.toFixed(2)} (${item.tax_rate}%)</td>
+            <td><strong>₹${item.total_with_tax.toFixed(2)}</strong></td>
+            <td><button type="button" class="btn btn-danger btn-sm" onclick="removeItem(${item.id})">
+                <i class="fas fa-trash"></i></button></td>
+        </tr>`;
+    });
+    
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+
+// Calculate order total
+function calculateOrderTotal() {
+    const subtotal = itemsList.reduce((sum, item) => sum + item.line_total, 0);
+    const taxTotal = itemsList.reduce((sum, item) => sum + item.tax_amount, 0);
+    const discountPercent = parseFloat(document.getElementById('discount-input').value) || 0;
+    const discountAmount = (subtotal * discountPercent) / 100;
+    const total = subtotal + taxTotal - discountAmount;
+    
+    document.getElementById('summary-subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+    document.getElementById('summary-tax').textContent = `₹${taxTotal.toFixed(2)}`;
+    document.getElementById('summary-total').textContent = `₹${total.toFixed(2)}`;
+}
+
+// Auto-fill rate when item is selected
+document.getElementById('temp-item-select').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    if (selectedOption.dataset.rate) {
+        document.getElementById('temp-rate').value = selectedOption.dataset.rate;
+    }
+    if (selectedOption.dataset.tax) {
+        document.getElementById('temp-tax').value = selectedOption.dataset.tax;
+    }
+});
+
+// Handle form submission
+document.getElementById('po-form').addEventListener('submit', function(e) {
+    if (itemsList.length === 0) {
+        e.preventDefault();
+        alert('Please add at least one item to the purchase order.');
+        return;
+    }
+    
+    // Add items data to form as JSON
+    document.getElementById('items-data').value = JSON.stringify(itemsList);
+    
+    // Show loading state
+    const submitButton = document.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+});
+
+// Recalculate when discount changes
+document.getElementById('discount-input').addEventListener('input', calculateOrderTotal);
+
+// Set default dates
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const expectedDate = new Date(today);
+    expectedDate.setDate(today.getDate() + 7);
+    
+    const formatDate = (date) => {
+        return date.toISOString().split('T')[0];
+    };
+    
+    if (!document.querySelector('input[name="po_date"]').value) {
+        document.querySelector('input[name="po_date"]').value = formatDate(today);
+    }
+    if (!document.querySelector('input[name="expected_delivery_date"]').value) {
+        document.querySelector('input[name="expected_delivery_date"]').value = formatDate(expectedDate);
+    }
+});
+</script>
+{% endblock %}

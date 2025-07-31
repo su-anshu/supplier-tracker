@@ -47,7 +47,13 @@ sudo apt install -y \
     git \
     curl \
     software-properties-common \
-    sqlite3
+    sqlite3 \
+    libjpeg-dev \
+    zlib1g-dev \
+    libpng-dev \
+    libfreetype6-dev \
+    liblcms2-dev \
+    libwebp-dev
 
 # Create application directory
 APP_DIR="/home/ubuntu/supplier_tracker"
